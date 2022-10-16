@@ -1,0 +1,39 @@
+spring:
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_HOST}
+    username: ${DB_NAME}
+    password: ${DB_PASSWORD}
+  redis:
+    port: ${REDIS_PORT}
+    host: ${REDIS_HOST}
+    database: 0
+
+  data:
+    redis:
+      repositories:
+        enabled: false
+    mongodb:
+      uri: ${MONGO_HOST}
+      username: ${MONGO_USER}
+      password: ${MONGO_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 1000
+        jdbc:
+          batch_size: 1000
+
+    database: mysql
+
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: debug
