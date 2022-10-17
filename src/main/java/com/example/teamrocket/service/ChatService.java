@@ -2,6 +2,7 @@ package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
 import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
+import com.example.teamrocket.chatRoom.entity.Message;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,4 +16,6 @@ public interface ChatService {
     ChatRoomDto editRoom(Long userId, Long roomId, ChatRoomInput param);
 
     void deleteRoom(Long userId, Long roomId);
+
+    List<Message> enterRoom(Long roomId, Long userId);
 }

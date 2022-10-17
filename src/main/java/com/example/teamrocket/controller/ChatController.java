@@ -2,6 +2,7 @@ package com.example.teamrocket.controller;
 
 import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
 import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
+import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.service.ChatService;
 import com.example.teamrocket.user.User;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,14 @@ public class ChatController {
         chatService.deleteRoom(userId,roomId);
 
         return ResponseEntity.ok(null);
+    }
+
+    @PatchMapping("/room-enter")
+    public ResponseEntity<List<Message>> enterRoom(@RequestParam Long roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+        Long userId=0L;
+        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
+        List<Message> messages = chatService.enterRoom(roomId, userId);
+        return ResponseEntity.ok(messages);
     }
 
 }
