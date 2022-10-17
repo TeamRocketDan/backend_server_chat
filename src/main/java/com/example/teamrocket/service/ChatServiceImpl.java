@@ -58,4 +58,18 @@ public class ChatServiceImpl implements ChatService{
 
         return ChatRoomDto.of(chatRoomMySqlRepository.save(chatRoom));
     }
+
+    @Override
+    public void deleteRoom(Long userId, Long roomId) {
+
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+                () -> new RuntimeException(""));
+
+        if (!chatRoom.getUserId().equals(userId)) {
+            throw new RuntimeException("");
+        }
+
+        chatRoom.setDeletedAt(LocalDateTime.now());
+        chatRoomMySqlRepository.save(chatRoom);
+    }
 }

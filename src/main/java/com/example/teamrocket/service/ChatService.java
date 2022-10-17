@@ -13,4 +13,6 @@ public interface ChatService {
     List<ChatRoomDto> listRoom();
 
     ChatRoomDto editRoom(Long userId, Long roomId, ChatRoomInput param);
+
+    void deleteRoom(Long userId, Long roomId);
 }
