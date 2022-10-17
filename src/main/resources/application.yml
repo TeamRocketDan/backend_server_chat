@@ -34,6 +34,12 @@ spring:
 
     database: mysql
 
+  rabbitmq:
+    username: ${RABBIT_ADMIN}
+    password: ${RABBIT_PASSWORD}
+    host: ${RABBIT_HOST}
+    port: ${RABBIT_PORT}
+
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: debug
