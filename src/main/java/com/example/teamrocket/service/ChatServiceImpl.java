@@ -114,4 +114,20 @@ public class ChatServiceImpl implements ChatService{
             throw new RuntimeException("정원을 넘어 들어갈 수 없습니다.");
         }
     }
+
+    @Override
+    public void leaveRoom(Long roomId, Long userId) {
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+                () -> new RuntimeException("방을 찾을 수 없습니다."));
+
+        ChatRoomParticipant participant= chatRoom.getParticipants().stream().
+                filter(x->x.getUserId().equals(userId)).findFirst().orElseThrow(
+                        () ->new RuntimeException("이 방의 참여자가 아닙니다."));
+
+        chatRoomParticipantRepository.delete(participant);
+
+    }
+
+
+
 }

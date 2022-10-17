@@ -64,4 +64,12 @@ public class ChatController {
         return ResponseEntity.ok(messages);
     }
 
+    @PatchMapping("/room-leave")
+    public ResponseEntity<?> leaveRoom(@RequestParam Long roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+        Long userId=0L;
+        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
+        chatService.leaveRoom(roomId, userId);
+        return ResponseEntity.ok(null);
+    }
+
 }
