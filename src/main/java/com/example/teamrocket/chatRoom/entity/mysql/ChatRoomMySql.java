@@ -1,5 +1,6 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
+import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,7 +33,7 @@ public class ChatRoomMySql {
 
     private String rcate1;
     private String rcate2;
-    private String racte3;
+    private String rcate3;
 
     private String longitude;
     private String latitude;
@@ -40,4 +41,24 @@ public class ChatRoomMySql {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+
+    public static ChatRoomMySql of(Long userId, ChatRoomInput input){
+        return ChatRoomMySql.builder()
+                .userId(userId)
+                .chatRoomStatus(ChatRoomStatus.ING)
+                .title(input.getTitle())
+                .start_date(input.getStart_date())
+                .end_date(input.getEnd_date())
+                .maxParticipant(input.getMaxParticipant())
+                .privateRoom(input.isPrivateRoom())
+                .password(input.getPassword()) //차후 수정 필요
+                .rcate1(input.getRcate1())
+                .rcate2(input.getRcate2())
+                .rcate3(input.getRcate3())
+                .longitude(input.getLongitude())
+                .latitude(input.getLatitude())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
 }
