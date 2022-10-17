@@ -20,7 +20,8 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/room")
-    public ResponseEntity<ChatRoomDto> createRoom(@RequestBody ChatRoomInput param, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+    public ResponseEntity<ChatRoomDto> createRoom(@RequestBody ChatRoomInput param,
+                                                            @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
 //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
         ChatRoomDto chatRoom = chatService.createRoom(userId,param);
@@ -34,6 +35,14 @@ public class ChatController {
         return ResponseEntity.ok(results);
     }
 
+    @PatchMapping("/room")
+    public ResponseEntity<ChatRoomDto> editRoom(@RequestParam Long roomId, @RequestBody ChatRoomInput param,
+                                                    @RequestHeader(name = "X_AUTH_TOKEN") String token){
+        Long userId=0L;
+        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
+        ChatRoomDto chatRoom = chatService.editRoom(userId,roomId,param);
 
+        return ResponseEntity.ok(chatRoom);
+    }
 
 }
