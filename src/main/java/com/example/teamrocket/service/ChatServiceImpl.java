@@ -85,7 +85,7 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public List<Message> enterRoom(Long roomId, Long userId) {
+    public void enterRoom(Long roomId, Long userId) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new RuntimeException("방을 찾을 수 없습니다."));
 
@@ -93,23 +93,12 @@ public class ChatServiceImpl implements ChatService{
                 filter(x->x.getUserId().equals(userId)).findFirst();
 
         if(optionalParticipant.isPresent()){
-            ChatRoom chatRoomMongo = chatRoomMongoRepository.findById(String.valueOf(roomId)).orElseThrow(
-                    ()->new RuntimeException("방을 찾을 수 없습니다."));
-
-            List<Message> messages = chatRoomMongo.getMessages();
-
-            Collections.reverse(messages);
-            messages = chatRoomMongo.getMessages().stream().takeWhile(
-                    x->x.getCreatedAt().isAfter(optionalParticipant.get().getLeftAt())).collect(Collectors.toList());
-            Collections.reverse(messages);
-
-            return messages;
+            throw new RuntimeException("이미 방에 참가한 사람입니다.");
         } else if(chatRoom.getParticipants().size() < chatRoom.getMaxParticipant()){
             ChatRoomParticipant participant = new ChatRoomParticipant();
             participant.setChatRoomMySql(chatRoom);
             participant.setUserId(userId);
             chatRoomParticipantRepository.save(participant);
-            return new ArrayList<>();
         } else{
             throw new RuntimeException("정원을 넘어 들어갈 수 없습니다.");
         }
@@ -128,6 +117,27 @@ public class ChatServiceImpl implements ChatService{
 
     }
 
+    @Override
+    public List<Message> getMessages(Long roomId, Long userId) {
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+                () -> new RuntimeException("방을 찾을 수 없습니다."));
+
+        ChatRoomParticipant participant= chatRoom.getParticipants().stream().
+                filter(x->x.getUserId().equals(userId)).findFirst().orElseThrow(
+                        ()-> new RuntimeException("방에 참가한 이력이 없습니다."));
 
 
+        ChatRoom chatRoomMongo = chatRoomMongoRepository.findById(String.valueOf(roomId)).orElseThrow(
+                ()->new RuntimeException("방을 찾을 수 없습니다."));
+
+        List<Message> messages = chatRoomMongo.getMessages();
+
+        // redis 에서 가져오는 부분? + 기본으로 최신순으로 들어오는지 궁금합니다. 현재는 오래된 것부터 가져오는 것을 가정하고 짰습니다.
+        Collections.reverse(messages);
+        messages = chatRoomMongo.getMessages().stream().takeWhile(
+                x->x.getCreatedAt().isAfter(participant.getLeftAt())).collect(Collectors.toList());
+        Collections.reverse(messages);
+
+        return messages;
+    }
 }

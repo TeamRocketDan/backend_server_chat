@@ -17,7 +17,9 @@ public interface ChatService {
 
     void deleteRoom(Long userId, Long roomId);
 
-    List<Message> enterRoom(Long roomId, Long userId);
+    void enterRoom(Long roomId, Long userId);
 
     void leaveRoom(Long roomId, Long userId);
+
+    List<Message> getMessages(Long roomId, Long userId);
 }

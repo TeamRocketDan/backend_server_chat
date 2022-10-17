@@ -4,7 +4,6 @@ import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
 import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.service.ChatService;
-import com.example.teamrocket.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -60,8 +59,8 @@ public class ChatController {
     public ResponseEntity<List<Message>> enterRoom(@RequestParam Long roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        List<Message> messages = chatService.enterRoom(roomId, userId);
-        return ResponseEntity.ok(messages);
+        chatService.enterRoom(roomId, userId);
+        return ResponseEntity.ok(null);
     }
 
     @PatchMapping("/room-leave")
@@ -72,4 +71,11 @@ public class ChatController {
         return ResponseEntity.ok(null);
     }
 
+    @GetMapping("/message")
+    public ResponseEntity<List<Message>> getMessages(@RequestParam Long roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+        Long userId=0L;
+        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
+        List<Message> messages = chatService.getMessages(roomId, userId);
+        return ResponseEntity.ok(messages);
+    }
 }
