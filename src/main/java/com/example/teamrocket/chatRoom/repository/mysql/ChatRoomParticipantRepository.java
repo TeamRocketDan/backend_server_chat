@@ -1,4 +1,4 @@
-package com.example.teamrocket.chatRoom.repository;
+package com.example.teamrocket.chatRoom.repository.mysql;
 
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import org.springframework.data.jpa.repository.JpaRepository;

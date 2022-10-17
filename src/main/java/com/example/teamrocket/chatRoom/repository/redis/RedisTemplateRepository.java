@@ -1,4 +1,4 @@
-package com.example.teamrocket.chatRoom.repository;
+package com.example.teamrocket.chatRoom.repository.redis;
 
 import com.example.teamrocket.chatRoom.entity.Message;
 import org.springframework.beans.factory.annotation.Autowired;
