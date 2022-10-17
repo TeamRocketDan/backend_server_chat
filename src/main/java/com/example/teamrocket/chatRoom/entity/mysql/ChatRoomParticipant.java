@@ -1,7 +1,10 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
+import lombok.Getter;
+
 import javax.persistence.*;
 
+@Getter
 @Entity
 @Table(name = "chat_participant")
 public class ChatRoomParticipant {
