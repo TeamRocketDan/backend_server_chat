@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -42,4 +44,7 @@ public class ChatRoomDto {
                 .build();
     }
 
+    public static List<ChatRoomDto> of(List<ChatRoomMySql> chatRooms) {
+        return chatRooms.stream().map(ChatRoomDto::of).collect(Collectors.toList());
+    }
 }

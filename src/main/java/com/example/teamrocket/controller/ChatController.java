@@ -28,6 +28,12 @@ public class ChatController {
         return ResponseEntity.ok(chatRoom);
     }
 
+    @GetMapping("/room-list")
+    public ResponseEntity<List<ChatRoomDto>> roomList(){
+        List<ChatRoomDto> results = chatService.listRoom();
+        return ResponseEntity.ok(results);
+    }
+
 
 
 }

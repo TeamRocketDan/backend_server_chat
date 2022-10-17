@@ -2,10 +2,13 @@ package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
 import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
-import com.example.teamrocket.user.User;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public interface ChatService {
     ChatRoomDto createRoom(Long userId, ChatRoomInput param);
+
+    List<ChatRoomDto> listRoom();
 }
