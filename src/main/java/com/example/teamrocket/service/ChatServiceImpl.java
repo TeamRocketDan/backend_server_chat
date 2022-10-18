@@ -94,9 +94,10 @@ public class ChatServiceImpl implements ChatService{
         if(participants.stream().anyMatch(x->x.getUserId().equals(userId))){
             throw new RuntimeException("이미 방에 참가한 사람입니다.");
         } else if(participants.size() < chatRoom.getMaxParticipant()){
-            ChatRoomParticipant participant = new ChatRoomParticipant();
-            participant.setChatRoomMySql(chatRoom);
-            participant.setUserId(userId);
+            ChatRoomParticipant participant = ChatRoomParticipant.builder()
+                    .chatRoomMySql(chatRoom)
+                    .userId(userId)
+                    .build();
             chatRoomParticipantRepository.save(participant);
         } else{
             throw new RuntimeException("정원을 넘어 들어갈 수 없습니다.");
