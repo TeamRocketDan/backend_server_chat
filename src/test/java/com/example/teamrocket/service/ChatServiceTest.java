@@ -15,8 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -64,6 +66,7 @@ class ChatServiceTest {
         //then
         verify(chatRoomMySqlRepository,times(1)).save(captor.capture());
         ChatRoomMySql chatRoomMySqlCaptured = captor.getValue();
+        assertEquals(1L,chatRoomMySqlCaptured.getUserId());
         assertEquals("채팅방1",chatRoomMySqlCaptured.getTitle());
         assertEquals(8,chatRoomMySqlCaptured.getMaxParticipant());
         assertEquals("1234",chatRoomMySqlCaptured.getPassword());
@@ -104,8 +107,83 @@ class ChatServiceTest {
     }
 
     @Test
-    void editRoom() {
+    void editRoomSuccess() {
+
+        //given
+        ChatRoomInput input = ChatRoomInput.builder()
+                .title("채팅방1")
+                .start_date(LocalDateTime.now())
+                .end_date(LocalDateTime.now().plusDays(1))
+                .maxParticipant(8)
+                .privateRoom(false)
+                .password("1234")
+                .rcate1("rcate1")
+                .rcate2("rcate2")
+                .rcate3("rcate3")
+                .longitude("위도")
+                .latitude("경도")
+                .build();
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(ChatRoomMySql.builder().userId(1L).build()));
+
+        given(chatRoomMySqlRepository.save(any())).willReturn(new ChatRoomMySql());
+
+        ArgumentCaptor<ChatRoomMySql> captor = ArgumentCaptor.forClass(ChatRoomMySql.class);
+        //when
+        chatService.editRoom(1L,1L,input);
+
+        //then
+        verify(chatRoomMySqlRepository,times(1)).save(captor.capture());
+        ChatRoomMySql chatRoomMySqlCaptured = captor.getValue();
+        assertEquals("채팅방1",chatRoomMySqlCaptured.getTitle());
+        assertEquals(8,chatRoomMySqlCaptured.getMaxParticipant());
+        assertEquals("1234",chatRoomMySqlCaptured.getPassword());
+        assertEquals("rcate1",chatRoomMySqlCaptured.getRcate1());
+        assertEquals("rcate2",chatRoomMySqlCaptured.getRcate2());
+        assertEquals("rcate3",chatRoomMySqlCaptured.getRcate3());
+        assertEquals("위도",chatRoomMySqlCaptured.getLongitude());
+        assertEquals("경도",chatRoomMySqlCaptured.getLatitude());
     }
+
+    @Test
+    void editRoomFail_NoRoom() {
+
+        //given
+        ChatRoomInput input = new ChatRoomInput();
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.empty());
+
+        //when
+        //then
+        try{
+            chatService.editRoom(1L,1L,input);
+        }catch (RuntimeException e){
+            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+        }
+
+    }
+
+    @Test
+    void editRoomFail_NotOwnerUser() {
+
+        //given
+        ChatRoomInput input = new ChatRoomInput();
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(ChatRoomMySql.builder().userId(1L).build()));
+
+        ArgumentCaptor<ChatRoomMySql> captor = ArgumentCaptor.forClass(ChatRoomMySql.class);
+        //when
+        //then
+        try{
+            chatService.editRoom(0L,1L,input);
+        }catch (RuntimeException e){
+            assertEquals("방장이 아닙니다.",e.getMessage());
+        }
+    }
+
 
     @Test
     void deleteRoom() {
