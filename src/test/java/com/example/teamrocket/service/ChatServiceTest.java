@@ -240,24 +240,10 @@ class ChatServiceTest {
         chatRoom.setId(1L);
         chatRoom.setMaxParticipant(3);
 
-        List<ChatRoomParticipant> participants = new ArrayList<>();
-
-        ChatRoomParticipant participant1 = new ChatRoomParticipant();
-        participant1.setUserId(1L);
-        participant1.setChatRoomMySql(chatRoom);
-        participants.add(participant1);
-
-        ChatRoomParticipant participant2 = new ChatRoomParticipant();
-        participant2.setUserId(2L);
-        participant2.setChatRoomMySql(chatRoom);
-        participants.add(participant2);
-
-        chatRoom.setParticipants(participants);
-
         given(chatRoomMySqlRepository.findById(1L)).willReturn(
                 Optional.of(chatRoom));
-        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,3L))
-                .willReturn(Optional.empty());
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom))
+                .willReturn(new ArrayList<>());
 
         ArgumentCaptor<ChatRoomParticipant> captor = ArgumentCaptor.forClass(ChatRoomParticipant.class);
         //when
@@ -288,12 +274,11 @@ class ChatServiceTest {
         participant2.setChatRoomMySql(chatRoom);
         participants.add(participant2);
 
-        chatRoom.setParticipants(participants);
 
         given(chatRoomMySqlRepository.findById(1L)).willReturn(
                 Optional.of(chatRoom));
-        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,1L))
-                .willReturn(Optional.of(participant1));
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom))
+                .willReturn(participants);
 
 
         //when
@@ -325,12 +310,11 @@ class ChatServiceTest {
         participant2.setChatRoomMySql(chatRoom);
         participants.add(participant2);
 
-        chatRoom.setParticipants(participants);
 
         given(chatRoomMySqlRepository.findById(1L)).willReturn(
                 Optional.of(chatRoom));
-        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,3L))
-                .willReturn(Optional.empty());
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom))
+                .willReturn(participants);
 
 
         //when
@@ -359,8 +343,6 @@ class ChatServiceTest {
         participant2.setUserId(2L);
         participant2.setChatRoomMySql(chatRoom);
         participants.add(participant2);
-
-        chatRoom.setParticipants(participants);
 
         given(chatRoomMySqlRepository.findById(1L)).willReturn(
                 Optional.of(chatRoom));
@@ -437,28 +419,26 @@ class ChatServiceTest {
         participant2.setChatRoomMySql(chatRoomMySql);
         participants.add(participant2);
 
-        chatRoomMySql.setParticipants(participants);
-
         List<Message> messages = new ArrayList<>();
 
         Message message1 = new Message();
         message1.setMessage("1번 메시지");
-        message1.setCreatedAt(LocalDateTime.now().minusDays(2L));
+        message1.setCreatedAt(LocalDateTime.now());
         messages.add(message1);
 
         Message message2 = new Message();
         message2.setMessage("2번 메시지");
-        message2.setCreatedAt(LocalDateTime.now().minusDays(2L));
+        message2.setCreatedAt(LocalDateTime.now());
         messages.add(message2);
 
         Message message3 = new Message();
         message3.setMessage("3번 메시지");
-        message3.setCreatedAt(LocalDateTime.now());
+        message3.setCreatedAt(LocalDateTime.now().minusDays(2));
         messages.add(message3);
 
         Message message4 = new Message();
         message4.setMessage("4번 메시지");
-        message4.setCreatedAt(LocalDateTime.now());
+        message4.setCreatedAt(LocalDateTime.now().minusDays(2));
         messages.add(message4);
 
         chatRoom.setMessages(messages);
@@ -476,8 +456,8 @@ class ChatServiceTest {
 
         //then
         assertEquals(2,results.size());
-        assertEquals("3번 메시지",results.get(0).getMessage());
-        assertEquals("4번 메시지",results.get(1).getMessage());
+        assertEquals("2번 메시지",results.get(0).getMessage());
+        assertEquals("1번 메시지",results.get(1).getMessage());
     }
 
     @Test
@@ -489,7 +469,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            List<Message> results = chatService.getMessages(1L,1L);
+            chatService.getMessages(1L,1L);
         }catch (Exception e){
             assertEquals("방을 찾을 수 없습니다.",e.getMessage());
         }
@@ -501,21 +481,16 @@ class ChatServiceTest {
         ChatRoomMySql chatRoomMySql = new ChatRoomMySql();
         chatRoomMySql.setId(1L);
 
-        ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setChatRoomId(String.valueOf(1L));
-
         given(chatRoomMySqlRepository.findById(1L)).willReturn(
                 Optional.of(chatRoomMySql));
         given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
                 .willReturn(Optional.empty());
-        given(chatRoomMongoRepository.findById(String.valueOf(1L))).willReturn(
-                Optional.of(chatRoom));
 
 
         //when
         //then
         try{
-            List<Message> results = chatService.getMessages(1L,1L);
+            chatService.getMessages(1L,1L);
         }catch (Exception e){
             assertEquals("방에 참가한 이력이 없습니다.",e.getMessage());
         }
@@ -543,7 +518,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            List<Message> results = chatService.getMessages(1L,1L);
+            chatService.getMessages(1L,1L);
         }catch (Exception e){
             assertEquals("방을 찾을 수 없습니다.",e.getMessage());
         }
