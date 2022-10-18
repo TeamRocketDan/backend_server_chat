@@ -13,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,5 +75,51 @@ class ChatServiceTest {
 
     }
 
+    @Test
+    void listRoomSuccess() {
+        //given
+        List<ChatRoomMySql> roomLists = new ArrayList<>();
+        ChatRoomMySql room1 = ChatRoomMySql.builder()
+                .title("채팅방1").privateRoom(true).build();
+        ChatRoomMySql room2 = ChatRoomMySql.builder()
+                .title("채팅방2").privateRoom(false).build();
+        ChatRoomMySql room3 = ChatRoomMySql.builder()
+                .title("채팅방3").privateRoom(false).build();
+        ChatRoomMySql room4 = ChatRoomMySql.builder()
+                .title("채팅방4").privateRoom(true).build();
 
+        roomLists.add(room1);
+        roomLists.add(room2);
+        roomLists.add(room3);
+        roomLists.add(room4);
+
+        given(chatRoomMySqlRepository.findAll()).willReturn(roomLists);
+        //when
+        var results = chatService.listRoom();
+        //then
+        assertEquals(2,results.size());
+        assertEquals("채팅방2",results.get(0).getTitle());
+        assertEquals("채팅방3",results.get(1).getTitle());
+
+    }
+
+    @Test
+    void editRoom() {
+    }
+
+    @Test
+    void deleteRoom() {
+    }
+
+    @Test
+    void enterRoom() {
+    }
+
+    @Test
+    void leaveRoom() {
+    }
+
+    @Test
+    void getMessages() {
+    }
 }

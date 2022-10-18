@@ -39,8 +39,8 @@ public class ChatServiceImpl implements ChatService{
     @Transactional(readOnly = true)
     @Override
     public List<ChatRoomDto> listRoom() {
-
-        return ChatRoomDto.of(chatRoomMySqlRepository.findAll());
+        var results = chatRoomMySqlRepository.findAll().stream().filter(x->!x.isPrivateRoom()).collect(Collectors.toList());
+        return ChatRoomDto.of(results);
     }
 
     @Transactional
