@@ -1,4 +1,4 @@
-package com.example.teamrocket.config;
+package com.example.teamrocket.config.socket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

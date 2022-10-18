@@ -7,6 +7,8 @@ import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomStatus;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
+import com.example.teamrocket.user.entity.User;
+import com.example.teamrocket.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,8 @@ public class DbConnectionSaveTest {
     private ChatRoomMongoRepository chatRoomMongoRepository;
     @Autowired
     private ChatRoomMySqlRepository chatRoomMySqlRepository;
+    @Autowired
+    private UserRepository userRepository;
 
 
     @BeforeEach // *주의 테스트를 위해 레디스 의 모든 데이터를 플러쉬 함
@@ -82,11 +86,29 @@ public class DbConnectionSaveTest {
     @Test
     @DisplayName("MySql 저장,가져오기 테스트")
     void saveMysqlDbTest() throws Exception{
+        User user = userRepository.findById(1L).get();
+
+        String s = UUID.randomUUID().toString();
         ChatRoomMySql chatRoom = ChatRoomMySql.builder()
+                .id(s)
+                .title("test")
+                .maxParticipant(10)
+                .userId(user)
+                .privateRoom(false)
+                .password("0")
+                .start_date(LocalDateTime.now())
+                .end_date(LocalDateTime.now())
+                .latitude("a")
+                .longitude("b")
                 .chatRoomStatus(ChatRoomStatus.TRAVEL)
+                .rcate1("abc")
+                .rcate2("cde")
+                .rcate3("ghi")
                 .build();
 
         ChatRoomMySql save = chatRoomMySqlRepository.save(chatRoom);
+
+
         ChatRoomMySql findChatRoom = chatRoomMySqlRepository.findById(save.getId()).get();
 
         assertThat(save.getChatRoomStatus())

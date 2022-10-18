@@ -1,4 +1,4 @@
-package com.example.teamrocket.config;
+package com.example.teamrocket.config.redis;
 
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,8 +24,8 @@ public class RedisConfig {
         objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
                 ObjectMapper.DefaultTyping.NON_FINAL);
 
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer =
-                new Jackson2JsonRedisSerializer(Message.class);
+        Jackson2JsonRedisSerializer<Message> jackson2JsonRedisSerializer =
+                new Jackson2JsonRedisSerializer<>(Message.class);
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 
         RedisTemplate<String,Message> template = new RedisTemplate<>();
