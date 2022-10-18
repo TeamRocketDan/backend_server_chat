@@ -17,8 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -87,7 +86,7 @@ class ChatServiceTest {
         ChatRoomMySql room2 = ChatRoomMySql.builder()
                 .title("채팅방2").privateRoom(false).build();
         ChatRoomMySql room3 = ChatRoomMySql.builder()
-                .title("채팅방3").privateRoom(false).build();
+                .title("채팅방3").privateRoom(true).deletedAt(LocalDateTime.now()).build();
         ChatRoomMySql room4 = ChatRoomMySql.builder()
                 .title("채팅방4").privateRoom(true).build();
 
@@ -174,7 +173,6 @@ class ChatServiceTest {
         given(chatRoomMySqlRepository.findById(1L)).willReturn(
                 Optional.of(ChatRoomMySql.builder().userId(1L).build()));
 
-        ArgumentCaptor<ChatRoomMySql> captor = ArgumentCaptor.forClass(ChatRoomMySql.class);
         //when
         //then
         try{
@@ -186,7 +184,50 @@ class ChatServiceTest {
 
 
     @Test
-    void deleteRoom() {
+    void deleteRoomSuccess() {
+        //given
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(ChatRoomMySql.builder().userId(1L).build()));
+
+        ArgumentCaptor<ChatRoomMySql> captor = ArgumentCaptor.forClass(ChatRoomMySql.class);
+        //when
+        chatService.deleteRoom(1L,1L);
+
+        //then
+        verify(chatRoomMySqlRepository,times(1)).save(captor.capture());
+        ChatRoomMySql chatRoomMySqlCaptured = captor.getValue();
+        assertNotNull(chatRoomMySqlCaptured.getDeletedAt());
+
+    }
+
+    @Test
+    void deleteRoomFail_NoRoom() {
+        //given
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.empty());
+
+        //when
+        //then
+        try{
+            chatService.deleteRoom(1L,1L);
+        }catch (RuntimeException e){
+            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+        }
+    }
+
+    @Test
+    void deleteRoomFail_NotOwnerUser() {
+        //given
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(ChatRoomMySql.builder().userId(1L).build()));
+
+        //when
+        //then
+        try{
+            chatService.deleteRoom(0L,1L);
+        }catch (RuntimeException e){
+            assertEquals("방장이 아닙니다.",e.getMessage());
+        }
     }
 
     @Test
