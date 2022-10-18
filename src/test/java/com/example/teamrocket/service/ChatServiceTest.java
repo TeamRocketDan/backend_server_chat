@@ -2,6 +2,7 @@ package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
+import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.ChatRoomMongoRepository;
 import com.example.teamrocket.chatRoom.repository.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.ChatRoomParticipantRepository;
@@ -231,7 +232,112 @@ class ChatServiceTest {
     }
 
     @Test
-    void enterRoom() {
+    void enterRoomSuccess() {
+        //given
+        ChatRoomMySql chatRoom = new ChatRoomMySql();
+        chatRoom.setId(1L);
+        chatRoom.setMaxParticipant(3);
+
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+
+        ChatRoomParticipant participant1 = new ChatRoomParticipant();
+        participant1.setUserId(1L);
+        participant1.setChatRoomMySql(chatRoom);
+        participants.add(participant1);
+
+        ChatRoomParticipant participant2 = new ChatRoomParticipant();
+        participant2.setUserId(2L);
+        participant2.setChatRoomMySql(chatRoom);
+        participants.add(participant2);
+
+        chatRoom.setParticipants(participants);
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoom));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,3L))
+                .willReturn(Optional.empty());
+
+        ArgumentCaptor<ChatRoomParticipant> captor = ArgumentCaptor.forClass(ChatRoomParticipant.class);
+        //when
+        chatService.enterRoom(1L,3L);
+        //then
+        verify(chatRoomParticipantRepository,times(1)).save(captor.capture());
+        ChatRoomParticipant chatRoomParticipantCaptured = captor.getValue();
+        assertEquals(chatRoom,chatRoomParticipantCaptured.getChatRoomMySql());
+        assertEquals(3L,chatRoomParticipantCaptured.getUserId());
+    }
+
+    @Test
+    void enterRoomFail_AlreadyParticipate() {
+        //given
+        ChatRoomMySql chatRoom = new ChatRoomMySql();
+        chatRoom.setId(1L);
+        chatRoom.setMaxParticipant(3);
+
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+
+        ChatRoomParticipant participant1 = new ChatRoomParticipant();
+        participant1.setUserId(1L);
+        participant1.setChatRoomMySql(chatRoom);
+        participants.add(participant1);
+
+        ChatRoomParticipant participant2 = new ChatRoomParticipant();
+        participant2.setUserId(2L);
+        participant2.setChatRoomMySql(chatRoom);
+        participants.add(participant2);
+
+        chatRoom.setParticipants(participants);
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoom));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,1L))
+                .willReturn(Optional.of(participant1));
+
+
+        //when
+        //then
+        try{
+            chatService.enterRoom(1L,1L);
+        }catch (Exception e){
+            assertEquals("이미 방에 참가한 사람입니다.",e.getMessage());
+        }
+    }
+
+
+    @Test
+    void enterRoomFail_ExceedMaxParticipant() {
+        //given
+        ChatRoomMySql chatRoom = new ChatRoomMySql();
+        chatRoom.setId(1L);
+        chatRoom.setMaxParticipant(2);
+
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+
+        ChatRoomParticipant participant1 = new ChatRoomParticipant();
+        participant1.setUserId(1L);
+        participant1.setChatRoomMySql(chatRoom);
+        participants.add(participant1);
+
+        ChatRoomParticipant participant2 = new ChatRoomParticipant();
+        participant2.setUserId(2L);
+        participant2.setChatRoomMySql(chatRoom);
+        participants.add(participant2);
+
+        chatRoom.setParticipants(participants);
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoom));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,3L))
+                .willReturn(Optional.empty());
+
+
+        //when
+        //then
+        try{
+            chatService.enterRoom(1L,3L);
+        }catch (Exception e){
+            assertEquals("정원을 넘어 들어갈 수 없습니다.",e.getMessage());
+        }
     }
 
     @Test
