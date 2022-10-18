@@ -17,8 +17,7 @@ spring:
         enabled: false
     mongodb:
       uri: ${MONGO_HOST}
-      username: ${MONGO_USER}
-      password: ${MONGO_PASSWORD}
+      database: ${MONGO_NAME}
 
   jpa:
     hibernate:
