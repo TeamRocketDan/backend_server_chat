@@ -20,9 +20,8 @@ spring:
       database: ${MONGO_NAME}
 
   jpa:
-    hibernate:
-      ddl-auto: update
-
+#    hibernate:
+#      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
