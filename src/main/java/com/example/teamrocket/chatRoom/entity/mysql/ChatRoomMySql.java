@@ -41,10 +41,6 @@ public class ChatRoomMySql {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_id")
-    List<ChatRoomParticipant> participants;
-
     public static ChatRoomMySql of(Long userId, ChatRoomInput input){
         return ChatRoomMySql.builder()
                 .userId(userId)

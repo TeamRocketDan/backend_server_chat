@@ -14,10 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -82,6 +80,7 @@ public class ChatServiceImpl implements ChatService{
 
         chatRoom.setDeletedAt(LocalDateTime.now());
         chatRoomMySqlRepository.save(chatRoom);
+        chatRoomParticipantRepository.deleteAllByChatRoomMySql(chatRoom);
     }
 
     @Override
@@ -89,12 +88,12 @@ public class ChatServiceImpl implements ChatService{
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new RuntimeException("방을 찾을 수 없습니다."));
 
-        Optional<ChatRoomParticipant> optionalParticipant =
-                chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,userId);
+        List<ChatRoomParticipant> participants =
+                chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom);
 
-        if(optionalParticipant.isPresent()){
+        if(participants.stream().anyMatch(x->x.getUserId().equals(userId))){
             throw new RuntimeException("이미 방에 참가한 사람입니다.");
-        } else if(chatRoom.getParticipants().size() < chatRoom.getMaxParticipant()){
+        } else if(participants.size() < chatRoom.getMaxParticipant()){
             ChatRoomParticipant participant = new ChatRoomParticipant();
             participant.setChatRoomMySql(chatRoom);
             participant.setUserId(userId);

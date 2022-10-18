@@ -9,4 +9,6 @@ import java.util.Optional;
 
 public interface ChatRoomParticipantRepository extends JpaRepository<ChatRoomParticipant,Long> {
     Optional<ChatRoomParticipant> findByChatRoomMySqlAndUserId(ChatRoomMySql chatRoomMySql, Long UserId);
+    List<ChatRoomParticipant> findAllByChatRoomMySql(ChatRoomMySql chatRoomMySql);
+    void deleteAllByChatRoomMySql(ChatRoomMySql chatRoomMySql);
 }
