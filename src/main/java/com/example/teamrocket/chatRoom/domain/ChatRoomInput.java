@@ -1,8 +1,7 @@
 package com.example.teamrocket.chatRoom.domain;
 
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomStatus;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -10,6 +9,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class ChatRoomInput {
 
     private String title;
