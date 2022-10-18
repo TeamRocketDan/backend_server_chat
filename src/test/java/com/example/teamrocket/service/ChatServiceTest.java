@@ -341,7 +341,75 @@ class ChatServiceTest {
     }
 
     @Test
-    void leaveRoom() {
+    void leaveRoomSuccess() {
+        //given
+        ChatRoomMySql chatRoom = new ChatRoomMySql();
+        chatRoom.setId(1L);
+
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+
+        ChatRoomParticipant participant1 = new ChatRoomParticipant();
+        participant1.setUserId(1L);
+        participant1.setChatRoomMySql(chatRoom);
+        participants.add(participant1);
+
+        ChatRoomParticipant participant2 = new ChatRoomParticipant();
+        participant2.setUserId(2L);
+        participant2.setChatRoomMySql(chatRoom);
+        participants.add(participant2);
+
+        chatRoom.setParticipants(participants);
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoom));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,1L))
+                .willReturn(Optional.of(participant1));
+
+        ArgumentCaptor<ChatRoomParticipant> captor = ArgumentCaptor.forClass(ChatRoomParticipant.class);
+
+        //when
+        chatService.leaveRoom(1L,1L);
+
+        //then
+        verify(chatRoomParticipantRepository,times(1)).delete(captor.capture());
+        ChatRoomParticipant capturedChatRoomParticipant = captor.getValue();
+        assertEquals(1L,capturedChatRoomParticipant.getUserId());
+        assertEquals(1L,capturedChatRoomParticipant.getChatRoomMySql().getId());
+    }
+
+    @Test
+    void leaveRoomFail_NoRoom() {
+        //given
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.empty());
+
+        //when
+        //then
+        try{
+            chatService.leaveRoom(1L,1L);
+        } catch (Exception e){
+            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+        }
+    }
+
+    @Test
+    void leaveRoomFail_NotParticipate() {
+        //given
+        ChatRoomMySql chatRoom = new ChatRoomMySql();
+        chatRoom.setId(1L);
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoom));
+
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,3L))
+                .willReturn(Optional.empty());
+        //when
+        //then
+        try{
+            chatService.leaveRoom(1L,3L);
+        } catch (Exception e){
+            assertEquals("방에 참가한 이력이 없습니다.",e.getMessage());
+        }
     }
 
     @Test
