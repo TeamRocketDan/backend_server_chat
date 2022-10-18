@@ -1,6 +1,8 @@
 package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
+import com.example.teamrocket.chatRoom.entity.ChatRoom;
+import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.ChatRoomMongoRepository;
@@ -413,6 +415,139 @@ class ChatServiceTest {
     }
 
     @Test
-    void getMessages() {
+    void getMessagesSuccess() {
+        //given
+
+        ChatRoomMySql chatRoomMySql = new ChatRoomMySql();
+        chatRoomMySql.setId(1L);
+
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setChatRoomId(String.valueOf(1L));
+
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+
+        ChatRoomParticipant participant1 = new ChatRoomParticipant();
+        participant1.setUserId(1L);
+        participant1.setChatRoomMySql(chatRoomMySql);
+        participant1.setLeftAt(LocalDateTime.now().minusDays(1L));
+        participants.add(participant1);
+
+        ChatRoomParticipant participant2 = new ChatRoomParticipant();
+        participant2.setUserId(2L);
+        participant2.setChatRoomMySql(chatRoomMySql);
+        participants.add(participant2);
+
+        chatRoomMySql.setParticipants(participants);
+
+        List<Message> messages = new ArrayList<>();
+
+        Message message1 = new Message();
+        message1.setMessage("1번 메시지");
+        message1.setCreatedAt(LocalDateTime.now().minusDays(2L));
+        messages.add(message1);
+
+        Message message2 = new Message();
+        message2.setMessage("2번 메시지");
+        message2.setCreatedAt(LocalDateTime.now().minusDays(2L));
+        messages.add(message2);
+
+        Message message3 = new Message();
+        message3.setMessage("3번 메시지");
+        message3.setCreatedAt(LocalDateTime.now());
+        messages.add(message3);
+
+        Message message4 = new Message();
+        message4.setMessage("4번 메시지");
+        message4.setCreatedAt(LocalDateTime.now());
+        messages.add(message4);
+
+        chatRoom.setMessages(messages);
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoomMySql));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
+                .willReturn(Optional.of(participant1));
+        given(chatRoomMongoRepository.findById(String.valueOf(1L))).willReturn(
+                Optional.of(chatRoom));
+
+
+        //when
+        List<Message> results = chatService.getMessages(1L,1L);
+
+        //then
+        assertEquals(2,results.size());
+        assertEquals("3번 메시지",results.get(0).getMessage());
+        assertEquals("4번 메시지",results.get(1).getMessage());
     }
+
+    @Test
+    void getMessagesFail_NoRoom() {
+        //given
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.empty());
+
+        //when
+        //then
+        try{
+            List<Message> results = chatService.getMessages(1L,1L);
+        }catch (Exception e){
+            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+        }
+    }
+
+    @Test
+    void getMessagesFail_NotParticipate() {
+        //given
+        ChatRoomMySql chatRoomMySql = new ChatRoomMySql();
+        chatRoomMySql.setId(1L);
+
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setChatRoomId(String.valueOf(1L));
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoomMySql));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
+                .willReturn(Optional.empty());
+        given(chatRoomMongoRepository.findById(String.valueOf(1L))).willReturn(
+                Optional.of(chatRoom));
+
+
+        //when
+        //then
+        try{
+            List<Message> results = chatService.getMessages(1L,1L);
+        }catch (Exception e){
+            assertEquals("방에 참가한 이력이 없습니다.",e.getMessage());
+        }
+    }
+
+    @Test
+    void getMessagesFail_NoRoomMongo() {
+        //given
+        ChatRoomMySql chatRoomMySql = new ChatRoomMySql();
+        chatRoomMySql.setId(1L);
+
+        ChatRoomParticipant participant1 = new ChatRoomParticipant();
+        participant1.setUserId(1L);
+        participant1.setChatRoomMySql(chatRoomMySql);
+        participant1.setLeftAt(LocalDateTime.now().minusDays(1L));
+
+        given(chatRoomMySqlRepository.findById(1L)).willReturn(
+                Optional.of(chatRoomMySql));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
+                .willReturn(Optional.of(participant1));
+        given(chatRoomMongoRepository.findById(String.valueOf(1L))).willReturn(
+                Optional.empty());
+
+
+        //when
+        //then
+        try{
+            List<Message> results = chatService.getMessages(1L,1L);
+        }catch (Exception e){
+            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+        }
+    }
+
+
 }

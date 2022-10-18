@@ -122,9 +122,9 @@ public class ChatServiceImpl implements ChatService{
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new RuntimeException("방을 찾을 수 없습니다."));
 
-        ChatRoomParticipant participant= chatRoom.getParticipants().stream().
-                filter(x->x.getUserId().equals(userId)).findFirst().orElseThrow(
-                        ()-> new RuntimeException("방에 참가한 이력이 없습니다."));
+        ChatRoomParticipant participant =
+                chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom, userId)
+                        .orElseThrow(() -> new RuntimeException("방에 참가한 이력이 없습니다."));
 
 
         ChatRoom chatRoomMongo = chatRoomMongoRepository.findById(String.valueOf(roomId)).orElseThrow(
