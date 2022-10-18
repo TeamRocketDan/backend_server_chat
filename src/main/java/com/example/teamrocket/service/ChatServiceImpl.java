@@ -133,8 +133,7 @@ public class ChatServiceImpl implements ChatService{
         List<Message> messages = chatRoomMongo.getMessages();
 
         // redis 에서 가져오는 부분? + 기본으로 최신순으로 들어오는지 궁금합니다. 현재는 오래된 것부터 가져오는 것을 가정하고 짰습니다.
-        Collections.reverse(messages);
-        messages = chatRoomMongo.getMessages().stream().takeWhile(
+        messages = messages.stream().takeWhile(
                 x->x.getCreatedAt().isAfter(participant.getLeftAt())).collect(Collectors.toList());
         Collections.reverse(messages);
 
