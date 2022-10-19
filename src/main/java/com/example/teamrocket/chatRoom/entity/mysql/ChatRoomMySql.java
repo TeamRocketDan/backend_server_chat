@@ -1,5 +1,12 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
+import com.example.teamrocket.config.jpa.BaseEntity;
+import com.example.teamrocket.user.entity.User;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.repository.CountQuery;
 import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
 import lombok.*;
 
@@ -8,18 +15,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "chat")
-public class ChatRoomMySql {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "chat_id")
-    private Long id;
-    private Long userId;//chat owner
+public class ChatRoomMySql extends BaseEntity {
+
+    @Id @Column(name = "chat_id")
+    private String id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User userId;//chat owner
 
     @Enumerated(EnumType.STRING)
     private ChatRoomStatus chatRoomStatus;
@@ -37,8 +45,6 @@ public class ChatRoomMySql {
     private String longitude;
     private String latitude;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
     public static ChatRoomMySql of(Long userId, ChatRoomInput input){
