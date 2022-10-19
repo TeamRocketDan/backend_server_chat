@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,8 +42,15 @@ public class ChatServiceImpl implements ChatService{
     @Transactional(readOnly = true)
     @Override
     public List<ChatRoomDto> listRoom() {
-        var results = chatRoomMySqlRepository.findAll().stream().filter(x->(!x.isPrivateRoom()|| x.getDeletedAt()!=null)).collect(Collectors.toList());
-        return ChatRoomDto.of(results);
+        var chatRooms = chatRoomMySqlRepository.findAll().stream().filter(x->(!x.isPrivateRoom()|| x.getDeletedAt()!=null)).collect(Collectors.toList());
+        List<ChatRoomDto> results = new ArrayList<>(chatRooms.size());
+        for(ChatRoomMySql chatRoom : chatRooms){
+            ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
+            chatRoomDto.setCurParticipant(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom).size());
+            results.add(chatRoomDto);
+        }
+
+        return results;
     }
 
     @Transactional
