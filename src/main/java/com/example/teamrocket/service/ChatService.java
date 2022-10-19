@@ -13,13 +13,13 @@ public interface ChatService {
 
     List<ChatRoomDto> listRoom();
 
-    ChatRoomDto editRoom(Long userId, Long roomId, ChatRoomInput param);
+    ChatRoomDto editRoom(Long userId, String roomId, ChatRoomInput param);
 
-    void deleteRoom(Long userId, Long roomId);
+    void deleteRoom(Long userId, String roomId);
 
-    void enterRoom(Long roomId, Long userId);
+    void enterRoom(String roomId, String password,Long userId);
 
-    void leaveRoom(Long roomId, Long userId);
+    void leaveRoom(String roomId, Long userId);
 
-    List<Message> getMessages(Long roomId, Long userId);
+    List<Message> getMessages(String roomId, Long userId);
 }

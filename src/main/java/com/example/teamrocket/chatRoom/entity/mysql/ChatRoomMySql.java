@@ -1,18 +1,15 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
+import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
 import com.example.teamrocket.config.jpa.BaseEntity;
 import com.example.teamrocket.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.repository.CountQuery;
-import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
-import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -27,7 +24,7 @@ public class ChatRoomMySql extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User userId;//chat owner
+    private User owner;
 
     @Enumerated(EnumType.STRING)
     private ChatRoomStatus chatRoomStatus;
@@ -47,10 +44,10 @@ public class ChatRoomMySql extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
-    public static ChatRoomMySql of(Long userId, ChatRoomInput input){
+    public static ChatRoomMySql of(User user, ChatRoomInput input){
         return ChatRoomMySql.builder()
-                .userId(userId)
-                .chatRoomStatus(ChatRoomStatus.ING)
+                .owner(user)
+                .chatRoomStatus(ChatRoomStatus.PRE_TRAVEL)
                 .title(input.getTitle())
                 .start_date(input.getStart_date())
                 .end_date(input.getEnd_date())
@@ -62,8 +59,21 @@ public class ChatRoomMySql extends BaseEntity {
                 .rcate3(input.getRcate3())
                 .longitude(input.getLongitude())
                 .latitude(input.getLatitude())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    public void update (String title, LocalDateTime start_date, LocalDateTime end_date,
+                        int maxParticipant, boolean privateRoom, String password){
+
+        this.title = title;
+        this.start_date = start_date;
+        this.end_date = end_date;
+        this.maxParticipant = maxParticipant;
+        this.privateRoom = privateRoom;
+        this.password = password;
+    }
+
+    public void delete(){
+        this.deletedAt = LocalDateTime.now();
     }
 }
