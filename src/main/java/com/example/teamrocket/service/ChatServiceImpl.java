@@ -80,7 +80,7 @@ public class ChatServiceImpl implements ChatService{
                 param.getMaxParticipant(), param.isPrivateRoom(), param.getPassword());
 
 
-        return ChatRoomDto.of(chatRoomMySqlRepository.save(chatRoom));
+        return ChatRoomDto.of(chatRoom);
     }
 
     @Override
