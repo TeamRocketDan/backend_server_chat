@@ -99,13 +99,23 @@ class ChatServiceTest {
         roomLists.add(room3);
         roomLists.add(room4);
 
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder().build();
+        List<ChatRoomParticipant> list = new ArrayList<>();
+        list.add(participant1);
+
         given(chatRoomMySqlRepository.findAll()).willReturn(roomLists);
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(room2)).willReturn(new ArrayList<>());
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(room3))
+                .willReturn(list);
+
         //when
         var results = chatService.listRoom();
         //then
         assertEquals(2,results.size());
         assertEquals("채팅방2",results.get(0).getTitle());
+        assertEquals(0,results.get(0).getCurParticipant());
         assertEquals("채팅방3",results.get(1).getTitle());
+        assertEquals(1,results.get(1).getCurParticipant());
 
     }
 
@@ -115,8 +125,8 @@ class ChatServiceTest {
         //given
         ChatRoomInput input = ChatRoomInput.builder()
                 .title("채팅방1")
-                .start_date(LocalDateTime.now())
-                .end_date(LocalDateTime.now().plusDays(1))
+                .start_date(LocalDateTime.now().plusDays(2))
+                .end_date(LocalDateTime.now().plusDays(4))
                 .maxParticipant(8)
                 .password("1234")
                 .privateRoom(false)
@@ -142,6 +152,25 @@ class ChatServiceTest {
         assertEquals(8,chatRoomMySqlCaptured.getMaxParticipant());
         assertEquals("1234",chatRoomMySqlCaptured.getPassword());
         assertFalse(chatRoomMySqlCaptured.isPrivateRoom());
+    }
+
+
+    @Test
+    void editRoomFail_NoUser() {
+
+        //given
+        ChatRoomInput input = new ChatRoomInput();
+
+        given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+        //when
+        //then
+        try{
+            chatService.editRoom(1L,"1번방",input);
+        }catch (RuntimeException e){
+            assertEquals("유저를 찾을 수 없습니다.",e.getMessage());
+        }
+
     }
 
     @Test
@@ -183,6 +212,64 @@ class ChatServiceTest {
         }
     }
 
+    @Test
+    void editRoomFail_StartDateError() {
+
+        //given
+        ChatRoomInput input = ChatRoomInput.builder()
+                .title("채팅방1")
+                .start_date(LocalDateTime.now().minusDays(1))
+                .end_date(LocalDateTime.now().plusDays(4))
+                .maxParticipant(8)
+                .password("1234")
+                .privateRoom(false)
+                .build();
+
+        User user = User.builder().id(1L).build();
+        given(chatRoomMySqlRepository.findById("1번방")).willReturn(
+                Optional.of(ChatRoomMySql.builder().owner(user).build()));
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        //when
+        //then
+        try{
+            chatService.editRoom(1L,"1번방",input);
+        }catch (RuntimeException e){
+            assertEquals("여행 시작날짜는 현재 날짜 이후여야합니다.",e.getMessage());
+        }
+    }
+
+    @Test
+    void editRoomFail_TooSmallMaxParticipant() {
+
+        //given
+        ChatRoomInput input = ChatRoomInput.builder()
+                .title("채팅방1")
+                .start_date(LocalDateTime.now().plusDays(1))
+                .end_date(LocalDateTime.now().plusDays(4))
+                .maxParticipant(1)
+                .password("1234")
+                .privateRoom(false)
+                .build();
+
+        User user = User.builder().id(1L).build();
+        ChatRoomMySql chatRoom = ChatRoomMySql.builder().owner(user).build();
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+        participants.add(new ChatRoomParticipant());
+        participants.add(new ChatRoomParticipant());
+
+        given(chatRoomMySqlRepository.findById("1번방")).willReturn(
+                Optional.of(chatRoom));
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom)).willReturn(participants);
+        //when
+        //then
+        try{
+            chatService.editRoom(1L,"1번방",input);
+        }catch (RuntimeException e){
+            assertEquals("현재 채팅방 인원보다 채팅방 인원을 적게 수정할 수 없습니다.",e.getMessage());
+        }
+    }
+
 
     @Test
     void deleteRoomSuccess() {
@@ -205,6 +292,20 @@ class ChatServiceTest {
         assertNotNull(chatRoomMySqlCaptured.getDeletedAt());
 
     }
+
+    @Test
+    void deleteRoomFail_NoUser() {
+        //given
+        given(userRepository.findById(1L)).willReturn(Optional.empty());
+        //when
+        //then
+        try{
+            chatService.deleteRoom(1L,"1번방");
+        }catch (RuntimeException e){
+            assertEquals("유저를 찾을 수 없습니다.",e.getMessage());
+        }
+    }
+
 
     @Test
     void deleteRoomFail_NoRoom() {
@@ -357,15 +458,9 @@ class ChatServiceTest {
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").maxParticipant(3)
                 .password("1234").build();
 
-        List<ChatRoomParticipant> participants = new ArrayList<>();
 
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder().userId(1L)
                 .chatRoomMySql(chatRoom).build();
-        participants.add(participant1);
-
-        ChatRoomParticipant participant2 = ChatRoomParticipant.builder().userId(2L)
-                .chatRoomMySql(chatRoom).build();
-        participants.add(participant2);
 
         given(chatRoomMySqlRepository.findById("1번방")).willReturn(
                 Optional.of(chatRoom));
@@ -426,18 +521,9 @@ class ChatServiceTest {
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setChatRoomId("1번방");
 
-        List<ChatRoomParticipant> participants = new ArrayList<>();
-
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
                 .userId(1L).chatRoomMySql(chatRoomMySql)
                 .leftAt(LocalDateTime.now().minusDays(1L)).build();
-
-        participants.add(participant1);
-
-        ChatRoomParticipant participant2 = ChatRoomParticipant.builder()
-                        .userId(2L).chatRoomMySql(chatRoomMySql).build();
-
-        participants.add(participant2);
 
         List<Message> messages = new ArrayList<>();
 
