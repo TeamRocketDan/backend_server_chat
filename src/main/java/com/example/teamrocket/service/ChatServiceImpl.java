@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,14 +52,21 @@ public class ChatServiceImpl implements ChatService{
                 ()->new RuntimeException("유저를 찾을 수 없습니다."));
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new RuntimeException("방을 찾을 수 없습니다."));
+        List<ChatRoomParticipant> participants =
+                chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom);
 
         if (!chatRoom.getOwner().equals(user)) {
             throw new RuntimeException("방장이 아닙니다.");
         }
 
 
-// 현재 날짜와 여행 시작 시간 비교
-// 현재 인원과 max 인원 비교
+        if(param.getStart_date().isBefore(LocalDateTime.now())){
+            throw new RuntimeException("여행 시작날짜는 현재 날짜 이후여야합니다.");
+        }
+
+        if(param.getMaxParticipant()<participants.size()){
+            throw new RuntimeException("현재 채팅방 인원보다 채팅방 인원을 적게 수정할 수 없습니다.");
+        }
 
         chatRoom.update(param.getTitle(),param.getStart_date(),param.getEnd_date(),
                 param.getMaxParticipant(), param.isPrivateRoom(), param.getPassword());
@@ -137,7 +145,6 @@ public class ChatServiceImpl implements ChatService{
 
         List<Message> messages = chatRoomMongo.getMessages();
 
-        // redis 에서 가져오는 부분? + 기본으로 최신순으로 들어오는지 궁금합니다. 현재는 오래된 것부터 가져오는 것을 가정하고 짰습니다.
         messages = messages.stream().takeWhile(
                 x->x.getCreatedAt().isAfter(participant.getLeftAt())).collect(Collectors.toList());
         Collections.reverse(messages);
