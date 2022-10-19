@@ -52,6 +52,7 @@ public class RabbitConfig {
     public RabbitTemplate rabbitTemplate(){
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
         rabbitTemplate.setMessageConverter(jsonMessageConverter());
+        rabbitTemplate.setRoutingKey(CHAT_QUEUE_NAME);
         return rabbitTemplate;
     }
 

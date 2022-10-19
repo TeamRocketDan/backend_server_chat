@@ -1,7 +1,5 @@
 package com.example.teamrocket.chatRoom.entity;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +17,5 @@ import java.time.LocalDateTime;
 public class Message implements Serializable {
     private String senderName;
     private String message;
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime createdAt;
 }
