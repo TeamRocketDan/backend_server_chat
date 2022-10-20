@@ -36,6 +36,11 @@ public class ChatServiceImpl implements ChatService{
         User user = userRepository.findById(userId).orElseThrow(
                 ()->new RuntimeException("유저를 찾을 수 없습니다."));
 
+        if(param.getEnd_date().isBefore(param.getStart_date())){
+            throw new RuntimeException("여행 시작 날짜는 여행 끝 날짜 이전이여야 합니다.");
+        }
+
+
         ChatRoomMySql chatRoom = ChatRoomMySql.of(user, param);
         return ChatRoomDto.of(chatRoomMySqlRepository.save(chatRoom));
     }
