@@ -1,9 +1,16 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
+import lombok.*;
+
 import com.example.teamrocket.config.jpa.BaseEntity;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "chat_participant")
 public class ChatRoomParticipant extends BaseEntity {
@@ -17,4 +24,5 @@ public class ChatRoomParticipant extends BaseEntity {
     private ChatRoomMySql chatRoomMySql;
 
     private Long userId;
+    private LocalDateTime leftAt;
 }

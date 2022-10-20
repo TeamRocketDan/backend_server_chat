@@ -93,7 +93,7 @@ public class DbConnectionSaveTest {
                 .id(s)
                 .title("test")
                 .maxParticipant(10)
-                .userId(user)
+                .owner(user)
                 .privateRoom(false)
                 .password("0")
                 .start_date(LocalDateTime.now())
