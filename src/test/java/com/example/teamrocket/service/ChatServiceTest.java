@@ -1,6 +1,7 @@
 package com.example.teamrocket.service;
 
-import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
@@ -50,7 +51,7 @@ class ChatServiceTest {
     @Test
     void createRoomSuccess() {
         //given
-        ChatRoomInput input = ChatRoomInput.builder()
+        ChatRoomCreateInput input = ChatRoomCreateInput.builder()
                 .title("채팅방1")
                 .start_date(LocalDateTime.now())
                 .end_date(LocalDateTime.now().plusDays(1))
@@ -123,7 +124,7 @@ class ChatServiceTest {
     void editRoomSuccess() {
 
         //given
-        ChatRoomInput input = ChatRoomInput.builder()
+        ChatRoomEditInput input = ChatRoomEditInput.builder()
                 .title("채팅방1")
                 .start_date(LocalDateTime.now().plusDays(2))
                 .end_date(LocalDateTime.now().plusDays(4))
@@ -159,7 +160,7 @@ class ChatServiceTest {
     void editRoomFail_NoUser() {
 
         //given
-        ChatRoomInput input = new ChatRoomInput();
+        ChatRoomEditInput input = new ChatRoomEditInput();
 
         given(userRepository.findById(1L)).willReturn(Optional.empty());
 
@@ -177,7 +178,7 @@ class ChatServiceTest {
     void editRoomFail_NoRoom() {
 
         //given
-        ChatRoomInput input = new ChatRoomInput();
+        ChatRoomEditInput input = new ChatRoomEditInput();
 
         given(chatRoomMySqlRepository.findById("1번방")).willReturn(
                 Optional.empty());
@@ -197,7 +198,7 @@ class ChatServiceTest {
     void editRoomFail_NotOwnerUser() {
 
         //given
-        ChatRoomInput input = new ChatRoomInput();
+        ChatRoomEditInput input = new ChatRoomEditInput();
 
         given(chatRoomMySqlRepository.findById("1번방")).willReturn(
                 Optional.of(ChatRoomMySql.builder().owner(User.builder().id(1L).build()).build()));
@@ -216,7 +217,7 @@ class ChatServiceTest {
     void editRoomFail_StartDateError() {
 
         //given
-        ChatRoomInput input = ChatRoomInput.builder()
+        ChatRoomEditInput input = ChatRoomEditInput.builder()
                 .title("채팅방1")
                 .start_date(LocalDateTime.now().minusDays(1))
                 .end_date(LocalDateTime.now().plusDays(4))
@@ -242,7 +243,7 @@ class ChatServiceTest {
     void editRoomFail_TooSmallMaxParticipant() {
 
         //given
-        ChatRoomInput input = ChatRoomInput.builder()
+        ChatRoomEditInput input = ChatRoomEditInput.builder()
                 .title("채팅방1")
                 .start_date(LocalDateTime.now().plusDays(1))
                 .end_date(LocalDateTime.now().plusDays(4))
