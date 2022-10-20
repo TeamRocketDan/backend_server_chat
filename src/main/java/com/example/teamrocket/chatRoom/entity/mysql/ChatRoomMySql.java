@@ -1,6 +1,7 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
 import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.config.jpa.BaseEntity;
 import com.example.teamrocket.user.entity.User;
 import lombok.AllArgsConstructor;
@@ -62,15 +63,14 @@ public class ChatRoomMySql extends BaseEntity {
                 .build();
     }
 
-    public void update (String title, LocalDateTime start_date, LocalDateTime end_date,
-                        int maxParticipant, boolean privateRoom, String password){
+    public void update (ChatRoomEditInput param){
 
-        this.title = title;
-        this.start_date = start_date;
-        this.end_date = end_date;
-        this.maxParticipant = maxParticipant;
-        this.privateRoom = privateRoom;
-        this.password = password;
+        this.title = param.getTitle();
+        this.start_date = param.getStart_date();
+        this.end_date = param.getEnd_date();
+        this.maxParticipant = param.getMaxParticipant();
+        this.privateRoom = param.isPrivateRoom();
+        this.password = param.getPassword();
     }
 
     public void delete(){

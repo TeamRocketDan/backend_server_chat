@@ -87,8 +87,7 @@ public class ChatServiceImpl implements ChatService{
             throw new RuntimeException("현재 채팅방 인원보다 채팅방 인원을 적게 수정할 수 없습니다.");
         }
 
-        chatRoom.update(param.getTitle(),param.getStart_date(),param.getEnd_date(),
-                param.getMaxParticipant(), param.isPrivateRoom(), param.getPassword());
+        chatRoom.update(param);
 
 
         return ChatRoomDto.of(chatRoom);
