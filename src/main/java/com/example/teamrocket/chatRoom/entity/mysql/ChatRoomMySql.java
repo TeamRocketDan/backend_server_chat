@@ -1,6 +1,6 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
-import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.config.jpa.BaseEntity;
 import com.example.teamrocket.user.entity.User;
 import lombok.AllArgsConstructor;
@@ -44,7 +44,7 @@ public class ChatRoomMySql extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
-    public static ChatRoomMySql of(User user, ChatRoomInput input){
+    public static ChatRoomMySql of(User user, ChatRoomCreateInput input){
         return ChatRoomMySql.builder()
                 .owner(user)
                 .chatRoomStatus(ChatRoomStatus.PRE_TRAVEL)

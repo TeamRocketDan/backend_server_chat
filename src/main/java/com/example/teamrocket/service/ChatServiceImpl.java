@@ -1,7 +1,8 @@
 package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
-import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
@@ -32,7 +33,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Transactional
     @Override
-    public ChatRoomDto createRoom(Long userId, ChatRoomInput param) {
+    public ChatRoomDto createRoom(Long userId, ChatRoomCreateInput param) {
         User user = userRepository.findById(userId).orElseThrow(
                 ()->new RuntimeException("유저를 찾을 수 없습니다."));
 
@@ -61,7 +62,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Transactional
     @Override
-    public ChatRoomDto editRoom(Long userId, String roomId, ChatRoomInput param) {
+    public ChatRoomDto editRoom(Long userId, String roomId, ChatRoomEditInput param) {
         User user = userRepository.findById(userId).orElseThrow(
                 ()->new RuntimeException("유저를 찾을 수 없습니다."));
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
