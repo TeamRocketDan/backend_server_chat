@@ -35,6 +35,7 @@ public class ChatServiceImpl implements ChatService{
     public ChatRoomDto createRoom(Long userId, ChatRoomInput param) {
         User user = userRepository.findById(userId).orElseThrow(
                 ()->new RuntimeException("유저를 찾을 수 없습니다."));
+
         ChatRoomMySql chatRoom = ChatRoomMySql.of(user, param);
         return ChatRoomDto.of(chatRoomMySqlRepository.save(chatRoom));
     }
@@ -70,6 +71,10 @@ public class ChatServiceImpl implements ChatService{
 
         if(param.getStart_date().isBefore(LocalDateTime.now())){
             throw new RuntimeException("여행 시작날짜는 현재 날짜 이후여야합니다.");
+        }
+
+        if(param.getEnd_date().isBefore(param.getStart_date())){
+            throw new RuntimeException("여행 시작 날짜는 여행 끝 날짜 이전이여야 합니다.");
         }
 
         if(param.getMaxParticipant()<participants.size()){
