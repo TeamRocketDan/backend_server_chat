@@ -82,6 +82,56 @@ class ChatServiceTest {
 
     }
 
+
+    @Test
+    void createRoomFail_NoUser() {
+        //given
+        ChatRoomCreateInput input = ChatRoomCreateInput.builder()
+                .build();
+
+        given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+        //when
+        //then
+        try{
+            chatService.createRoom(1L,input);
+        } catch (Exception e){
+            assertEquals("유저를 찾을 수 없습니다.",e.getMessage());
+        }
+
+
+
+    }
+
+    @Test
+    void createRoomFail_TravelDateIssue() {
+        //given
+        ChatRoomCreateInput input = ChatRoomCreateInput.builder()
+                .title("채팅방1")
+                .start_date(LocalDateTime.now())
+                .end_date(LocalDateTime.now().minusDays(1))
+                .maxParticipant(8)
+                .privateRoom(false)
+                .password("1234")
+                .rcate1("rcate1")
+                .rcate2("rcate2")
+                .rcate3("rcate3")
+                .longitude("위도")
+                .latitude("경도")
+                .build();
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(User.builder().id(1L).build()));
+
+        //when
+        //then
+        try{
+            chatService.createRoom(1L,input);
+        } catch (Exception e){
+            assertEquals("여행 시작 날짜는 여행 끝 날짜 이전이여야 합니다.",e.getMessage());
+        }
+    }
+
+
     @Test
     void listRoomSuccess() {
         //given
@@ -134,25 +184,20 @@ class ChatServiceTest {
                 .build();
 
         User user = User.builder().id(1L).build();
+
         given(chatRoomMySqlRepository.findById("1번방")).willReturn(
                 Optional.of(ChatRoomMySql.builder().owner(user).build()));
 
-        given(chatRoomMySqlRepository.save(any())).willReturn(new ChatRoomMySql());
-
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
-
-        ArgumentCaptor<ChatRoomMySql> captor = ArgumentCaptor.forClass(ChatRoomMySql.class);
         //when
-        chatService.editRoom(1L,"1번방",input);
+        var result = chatService.editRoom(1L,"1번방",input);
 
         //then
-        verify(chatRoomMySqlRepository,times(1)).save(captor.capture());
-        ChatRoomMySql chatRoomMySqlCaptured = captor.getValue();
-        assertEquals("채팅방1",chatRoomMySqlCaptured.getTitle());
-        assertEquals(8,chatRoomMySqlCaptured.getMaxParticipant());
-        assertEquals("1234",chatRoomMySqlCaptured.getPassword());
-        assertFalse(chatRoomMySqlCaptured.isPrivateRoom());
+
+        assertEquals("채팅방1",result.getTitle());
+        assertEquals(8,result.getMaxParticipant());
+        assertFalse(result.isPrivateRoom());
     }
 
 
