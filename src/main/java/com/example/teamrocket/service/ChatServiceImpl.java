@@ -149,7 +149,7 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public List<Message> getMessages(String roomId, Long userId) {
+    public List<Message> getMessages(String roomId,LocalDateTime from, Long userId) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new RuntimeException("방을 찾을 수 없습니다."));
 
@@ -164,7 +164,7 @@ public class ChatServiceImpl implements ChatService{
         List<Message> messages = chatRoomMongo.getMessages();
 
         messages = messages.stream().takeWhile(
-                x->x.getCreatedAt().isAfter(participant.getLeftAt())).collect(Collectors.toList());
+                x->x.getCreatedAt().isAfter(from)).collect(Collectors.toList());
         Collections.reverse(messages);
 
         return messages;

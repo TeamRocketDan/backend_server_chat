@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -74,10 +75,11 @@ public class ChatController {
     }
 
     @GetMapping("/message")
-    public ResponseEntity<List<Message>> getMessages(@RequestParam String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+    public ResponseEntity<List<Message>> getMessages(@RequestParam String roomId, @RequestParam LocalDateTime from
+            , @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        List<Message> messages = chatService.getMessages(roomId, userId);
+        List<Message> messages = chatService.getMessages(roomId, from ,userId);
         return ResponseEntity.ok(messages);
     }
 }
