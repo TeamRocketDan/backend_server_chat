@@ -1,14 +1,13 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
-import com.example.teamrocket.config.jpa.BaseEntity;
-
 import lombok.*;
+
+import com.example.teamrocket.config.jpa.BaseEntity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

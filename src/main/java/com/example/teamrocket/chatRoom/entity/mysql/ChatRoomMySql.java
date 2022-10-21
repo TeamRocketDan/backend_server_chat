@@ -1,5 +1,7 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
+import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.config.jpa.BaseEntity;
 import com.example.teamrocket.user.entity.User;
 import lombok.AllArgsConstructor;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,7 +30,7 @@ public class ChatRoomMySql extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User userId;//chat owner
+    private User owner;
 
     @Enumerated(EnumType.STRING)
     private ChatRoomStatus chatRoomStatus;
@@ -47,10 +50,10 @@ public class ChatRoomMySql extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
-    public static ChatRoomMySql of(Long userId, ChatRoomInput input){
+    public static ChatRoomMySql of(User user, ChatRoomCreateInput input){
         return ChatRoomMySql.builder()
-                .userId(userId)
-                .chatRoomStatus(ChatRoomStatus.ING)
+                .owner(user)
+                .chatRoomStatus(ChatRoomStatus.PRE_TRAVEL)
                 .title(input.getTitle())
                 .start_date(input.getStart_date())
                 .end_date(input.getEnd_date())
@@ -65,5 +68,19 @@ public class ChatRoomMySql extends BaseEntity {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    public void update (ChatRoomEditInput param){
+
+        this.title = param.getTitle();
+        this.start_date = param.getStart_date();
+        this.end_date = param.getEnd_date();
+        this.maxParticipant = param.getMaxParticipant();
+        this.privateRoom = param.isPrivateRoom();
+        this.password = param.getPassword();
+    }
+
+    public void delete(){
+        this.deletedAt = LocalDateTime.now();
     }
 }

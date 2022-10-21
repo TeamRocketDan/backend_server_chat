@@ -19,6 +19,7 @@ public class ChatRoomDto {
     private String title;
     private LocalDateTime start_date;
     private LocalDateTime end_date;
+    private int curParticipant;
     private int maxParticipant;
     private boolean privateRoom;
 
@@ -44,7 +45,7 @@ public class ChatRoomDto {
                 .build();
     }
 
-    public static List<ChatRoomDto> of(List<ChatRoomMySql> chatRooms) {
-        return chatRooms.stream().map(ChatRoomDto::of).collect(Collectors.toList());
+    public void setCurParticipant (int curParticipant) {
+        this.curParticipant = curParticipant;
     }
 }
