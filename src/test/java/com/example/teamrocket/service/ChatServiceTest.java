@@ -652,7 +652,7 @@ class ChatServiceTest {
         ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
 
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).chatRoomMySql(chatRoomMySql).leftAt(LocalDateTime.now().minusDays(1L)).build();
+                .userId(1L).chatRoomMySql(chatRoomMySql).build();
 
         given(chatRoomMySqlRepository.findById("1번방")).willReturn(
                 Optional.of(chatRoomMySql));

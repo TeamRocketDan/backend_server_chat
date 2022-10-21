@@ -3,6 +3,7 @@ package com.example.teamrocket.service;
 import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
 import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomServiceResult;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
@@ -110,7 +111,7 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public void enterRoom(String roomId,String password ,Long userId) {
+    public ChatRoomServiceResult enterRoom(String roomId, String password , Long userId) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new RuntimeException("방을 찾을 수 없습니다."));
 
@@ -130,13 +131,14 @@ public class ChatServiceImpl implements ChatService{
                     .userId(userId)
                     .build();
             chatRoomParticipantRepository.save(participant);
+            return new ChatRoomServiceResult(roomId,userId);
         } else{
             throw new RuntimeException("정원을 넘어 들어갈 수 없습니다.");
         }
     }
 
     @Override
-    public void leaveRoom(String roomId, Long userId) {
+    public ChatRoomServiceResult leaveRoom(String roomId, Long userId) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new RuntimeException("방을 찾을 수 없습니다."));
 
@@ -145,7 +147,7 @@ public class ChatServiceImpl implements ChatService{
                                 .orElseThrow(()->new RuntimeException("방에 참가한 이력이 없습니다."));
 
         chatRoomParticipantRepository.delete(participant);
-
+        return new ChatRoomServiceResult(roomId,userId);
     }
 
     @Override

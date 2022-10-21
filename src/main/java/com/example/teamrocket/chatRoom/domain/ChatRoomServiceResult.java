@@ -3,10 +3,10 @@ package com.example.teamrocket.chatRoom.domain;
 
 public class ChatRoomServiceResult {
 
-   private String chatRoomId;
-   private String userId;
+   private final String chatRoomId;
+   private final Long userId;
 
-    ChatRoomServiceResult(String chatRoomId, String userId){
+    public ChatRoomServiceResult(String chatRoomId, Long userId){
         this.chatRoomId = chatRoomId;
         this.userId = userId;
     }

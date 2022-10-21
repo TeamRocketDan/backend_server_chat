@@ -3,6 +3,7 @@ package com.example.teamrocket.controller;
 import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
 import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomServiceResult;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.service.ChatService;
 import com.example.teamrocket.utils.ApiUtils.ApiResult;
@@ -65,16 +66,16 @@ public class ChatController {
                                                    @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        chatService.enterRoom(roomId, password ,userId);
-        return ResponseEntity.ok(null);
+        ChatRoomServiceResult result = chatService.enterRoom(roomId, password ,userId);
+        return ResponseEntity.ok(success(result));
     }
 
     @PatchMapping("/room-leave")
-    public ResponseEntity<?> leaveRoom(@RequestParam String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+    public ResponseEntity<ApiResult> leaveRoom(@RequestParam String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        chatService.leaveRoom(roomId, userId);
-        return ResponseEntity.ok(null);
+        ChatRoomServiceResult result = chatService.leaveRoom(roomId, userId);
+        return ResponseEntity.ok(success(result));
     }
 
     @GetMapping("/message")
