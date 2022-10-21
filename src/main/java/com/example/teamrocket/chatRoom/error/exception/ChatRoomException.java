@@ -1,10 +1,16 @@
 package com.example.teamrocket.chatRoom.error.exception;
 
 import com.example.teamrocket.chatRoom.error.type.ChatRoomErrorCode;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ChatRoomException extends RuntimeException {
-    private final ChatRoomErrorCode errorCode;
-    private final String errorMessage;
+    private ChatRoomErrorCode errorCode;
+    private String errorMessage;
 
     public ChatRoomException(ChatRoomErrorCode errorCode) {
         super(errorCode.getMessage());
