@@ -4,17 +4,10 @@ import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.config.jpa.BaseEntity;
 import com.example.teamrocket.user.entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.repository.CountQuery;
-import com.example.teamrocket.chatRoom.domain.ChatRoomInput;
 import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -65,8 +58,6 @@ public class ChatRoomMySql extends BaseEntity {
                 .rcate3(input.getRcate3())
                 .longitude(input.getLongitude())
                 .latitude(input.getLatitude())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
     }
 
