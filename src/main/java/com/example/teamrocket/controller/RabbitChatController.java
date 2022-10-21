@@ -31,4 +31,11 @@ public class RabbitChatController {
         template.convertAndSend("/sub/chat/room/"+roomId, message);
 
     }
+
+    @MessageMapping("chat/leave/{roomId}")
+    public void leaveMessage(Message message,@DestinationVariable String roomId){
+
+        message.setMessage(message.getMessage() + "님이 채팅방에서 나가셨습니다.");
+        redisTemplateRepository.saveToLeft(roomId, message);
+    }
 }
