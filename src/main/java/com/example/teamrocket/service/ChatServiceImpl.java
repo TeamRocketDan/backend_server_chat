@@ -161,7 +161,8 @@ public class ChatServiceImpl implements ChatService{
         ChatRoom chatRoomMongo = chatRoomMongoRepository.findById(roomId).orElseThrow(
                 ()->new RuntimeException("방을 찾을 수 없습니다."));
 
-        List<Message> messages = chatRoomMongo.getMessages();
+//        List<Message> messages = chatRoomMongo.getMessages();
+        List<Message> messages = null;
 
         messages = messages.stream().takeWhile(
                 x->x.getCreatedAt().isAfter(participant.getLeftAt())).collect(Collectors.toList());

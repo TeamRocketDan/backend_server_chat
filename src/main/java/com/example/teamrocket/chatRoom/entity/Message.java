@@ -1,20 +1,24 @@
 package com.example.teamrocket.chatRoom.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @RedisHash("message")
+@Document("message")
 public class Message implements Serializable {
+
+    @MongoId
+    private String id;
+
     private String senderName;
     private String message;
     private LocalDateTime createdAt;
