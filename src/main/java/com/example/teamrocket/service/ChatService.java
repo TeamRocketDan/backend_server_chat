@@ -6,6 +6,7 @@ import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.Message;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,5 +23,5 @@ public interface ChatService {
 
     void leaveRoom(String roomId, Long userId);
 
-    List<Message> getMessages(String roomId, Long userId);
+    List<Message> getMessages(String roomId, LocalDateTime from, Long userId);
 }

@@ -568,8 +568,7 @@ class ChatServiceTest {
         chatRoom.setChatRoomId("1번방");
 
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).chatRoomMySql(chatRoomMySql)
-                .leftAt(LocalDateTime.now().minusDays(1L)).build();
+                .userId(1L).chatRoomMySql(chatRoomMySql).build();
 
         List<Message> messages = new ArrayList<>();
 
@@ -604,7 +603,7 @@ class ChatServiceTest {
 
 
         //when
-        List<Message> results = chatService.getMessages("1번방",1L);
+        List<Message> results = chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
 
         //then
         assertEquals(2,results.size());
@@ -621,7 +620,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getMessages("1번방",1L);
+            chatService.getMessages("1번방", LocalDateTime.now().minusDays(1), 1L);
         }catch (Exception e){
             assertEquals("방을 찾을 수 없습니다.",e.getMessage());
         }
@@ -641,7 +640,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getMessages("1번방",1L);
+            chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
         }catch (Exception e){
             assertEquals("방에 참가한 이력이 없습니다.",e.getMessage());
         }
@@ -666,7 +665,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getMessages("1번방",1L);
+            chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
         }catch (Exception e){
             assertEquals("방을 찾을 수 없습니다.",e.getMessage());
         }
