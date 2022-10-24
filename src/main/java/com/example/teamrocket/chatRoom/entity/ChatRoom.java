@@ -6,6 +6,8 @@ import org.springframework.data.redis.core.RedisHash;
 
 import javax.persistence.Column;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -22,4 +24,9 @@ public class ChatRoom implements Serializable {
 
     @DocumentReference
     private List<DayOfMessages> dayOfMessages;
+
+    private String chatRoomIdGenerate(String roomId){
+        String dayOfMessageStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return roomId+"#"+dayOfMessageStr;
+    }
 }

@@ -23,7 +23,7 @@ public class ChatController {
     @PostMapping("/room")
     public ResponseEntity<ChatRoomDto> createRoom(@RequestBody ChatRoomCreateInput param,
                                                             @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
+        Long userId=1L;
 //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
         ChatRoomDto chatRoom = chatService.createRoom(userId,param);
 
