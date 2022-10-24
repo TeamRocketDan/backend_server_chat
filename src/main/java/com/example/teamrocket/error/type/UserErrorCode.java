@@ -1,4 +1,4 @@
-package com.example.teamrocket.chatRoom.error.type;
+package com.example.teamrocket.error.type;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

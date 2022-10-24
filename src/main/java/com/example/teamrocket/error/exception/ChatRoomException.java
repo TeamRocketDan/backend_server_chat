@@ -1,6 +1,6 @@
-package com.example.teamrocket.chatRoom.error.exception;
+package com.example.teamrocket.error.exception;
 
-import com.example.teamrocket.chatRoom.error.type.ChatRoomErrorCode;
+import com.example.teamrocket.error.type.ChatRoomErrorCode;
 import lombok.*;
 
 @Getter

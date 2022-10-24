@@ -1,4 +1,4 @@
-package com.example.teamrocket.chatRoom.error.result;
+package com.example.teamrocket.error.result;
 
 import lombok.*;
 

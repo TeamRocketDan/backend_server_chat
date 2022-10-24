@@ -1,10 +1,9 @@
-package com.example.teamrocket.chatRoom.error.handler;
+package com.example.teamrocket.error.handler;
 
-import com.example.teamrocket.chatRoom.error.exception.ChatRoomException;
-import com.example.teamrocket.chatRoom.error.exception.UserException;
-import com.example.teamrocket.chatRoom.error.result.GlobalErrorResult;
+import com.example.teamrocket.error.exception.ChatRoomException;
+import com.example.teamrocket.error.exception.UserException;
+import com.example.teamrocket.error.result.GlobalErrorResult;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
