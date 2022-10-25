@@ -70,6 +70,9 @@ public class ChatRoomMySql extends BaseEntity {
         this.privateRoom = param.isPrivateRoom();
         this.password = param.getPassword();
     }
+    public void setId(String id){
+        this.id = id;
+    }
 
     public void delete(){
         this.deletedAt = LocalDateTime.now();

@@ -1,23 +1,32 @@
 package com.example.teamrocket.chatRoom.entity;
 
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.MongoId;
+import org.springframework.data.mongodb.core.mapping.*;
+import org.springframework.data.redis.core.RedisHash;
 
 import javax.persistence.Column;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@Document("chatRoom")
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
 @Builder
+@RedisHash("chatRoom")
+@Document("chatRoom")
 public class ChatRoom implements Serializable {
     @MongoId
-    @Column(name = "chat_room_id")
+    @Field(targetType = FieldType.OBJECT_ID)
     private String chatRoomId;
 
-    private List<Message> messages;
+    @DocumentReference
+    private List<DayOfMessages> dayOfMessages;
+
+    private String chatRoomIdGenerate(String roomId){
+        String dayOfMessageStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return roomId+"#"+dayOfMessageStr;
+    }
 }

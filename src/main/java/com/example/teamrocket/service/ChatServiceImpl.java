@@ -11,15 +11,20 @@ import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomParticipantRepository;
+import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
 import com.example.teamrocket.error.exception.ChatRoomException;
 import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +42,7 @@ public class ChatServiceImpl implements ChatService{
     private final ChatRoomMySqlRepository chatRoomMySqlRepository;
     private final ChatRoomMongoRepository chatRoomMongoRepository;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
+    private final RedisTemplateRepository redisTemplateRepository;
 
     @Override
     public ChatRoomDto createRoom(Long userId, ChatRoomCreateInput param) {
@@ -46,9 +52,12 @@ public class ChatServiceImpl implements ChatService{
         if(param.getEnd_date().isBefore(param.getStart_date())){
             throw new ChatRoomException(TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE);
         }
-
+        ChatRoom chatRoomMongo = ChatRoom.builder().build();
+        ChatRoom chatRoomMongoSave = chatRoomMongoRepository.save(chatRoomMongo);
 
         ChatRoomMySql chatRoom = ChatRoomMySql.of(user, param);
+        chatRoom.setId(chatRoomMongoSave.getChatRoomId());
+
         return ChatRoomDto.of(chatRoomMySqlRepository.save(chatRoom));
     }
 
@@ -94,7 +103,7 @@ public class ChatServiceImpl implements ChatService{
         }
 
         chatRoom.update(param);
-
+        redisTemplateRepository.updateExpireTime(roomId,param);
 
         return ChatRoomDto.of(chatRoom);
     }
@@ -109,10 +118,11 @@ public class ChatServiceImpl implements ChatService{
         if (!chatRoom.getOwner().equals(user)) {
             throw new ChatRoomException(NOT_CHAT_ROOM_OWNER);
         }
+        redisTemplateRepository.deleteChatRoom(roomId);
 
+        chatRoomParticipantRepository.deleteAllByChatRoomMySql(chatRoom);
         chatRoom.delete();
         chatRoomMySqlRepository.save(chatRoom);
-        chatRoomParticipantRepository.deleteAllByChatRoomMySql(chatRoom);
     }
 
 
@@ -163,11 +173,15 @@ public class ChatServiceImpl implements ChatService{
         chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom, userId)
                         .orElseThrow(() -> new ChatRoomException(NOT_PARTICIPATED_USER));
 
+        //redis 에서 페이징 처리해서 가져와야함 parmeter 로 pageable 필요
+        //redis 에서 가져오는걸로 변경 페이징 필요 (요일별로 가져온다던지)
+
 
         ChatRoom chatRoomMongo = chatRoomMongoRepository.findById(roomId).orElseThrow(
                 ()->new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        List<Message> messages = chatRoomMongo.getMessages();
+//        List<Message> messages = chatRoomMongo.getMessages();
+        List<Message> messages = null;
 
         messages = messages.stream().takeWhile(
                 x->x.getCreatedAt().isAfter(from)).collect(Collectors.toList());
