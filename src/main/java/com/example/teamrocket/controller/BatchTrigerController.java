@@ -33,11 +33,12 @@ public class BatchTrigerController {
 
     @GetMapping
     public void testBatchMessage() {
+        int cnt = 1;
         Set<String> keys = redisTemplateRepository.getAllTwoDaysAgoKeys();
 
         for (String key : keys) {
-            log.info("Batch running ...");
             Long size = redisTemplate.opsForList().size(key);
+            log.info(" ===============>>>>>>>>>>>>>>> Batch running ... current : "+cnt+" / "+size);
             JobParameters jobParameter = new JobParametersBuilder()
                     .addString("roomIdWithDayOfMonthYear", key)
                     .addString("messageSize", String.valueOf(size))
@@ -51,6 +52,7 @@ public class BatchTrigerController {
                 throw new RuntimeException(e);
             }
         }
-        log.info("Batch done");
+        log.info(" ===============>>>>>>>>>>>>>>> Batch Done");
+        cnt++;
     }
 }

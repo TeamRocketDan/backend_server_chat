@@ -51,7 +51,7 @@ public class CustomItemReader  implements ItemReader<List<Message>>, StepExecuti
         }
         jobContext.put("count",count1+1);
 
-        List<Message> list = redisTemplate.opsForList().range(roomIdWithDayOfMonthYear, count1 * READ_SIZE, (count1 + 1) * READ_SIZE);
+        List<Message> list = redisTemplate.opsForList().range(roomIdWithDayOfMonthYear, count1 * READ_SIZE, ((count1 + 1) * READ_SIZE)-1);
         if(list.size() == 0) return null;
         return list;
     }
