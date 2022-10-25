@@ -41,8 +41,8 @@ public class ChatController {
         return ResponseEntity.ok(results);
     }
 
-    @PatchMapping("/room")
-    public ResponseEntity<ApiResult> editRoom(@RequestParam String roomId, @RequestBody ChatRoomEditInput param,
+    @PatchMapping("/room/{roomId}")
+    public ResponseEntity<ApiResult> editRoom(@PathVariable String roomId, @RequestBody ChatRoomEditInput param,
                                                 @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
@@ -51,8 +51,8 @@ public class ChatController {
         return ResponseEntity.ok(success(chatRoom));
     }
 
-    @DeleteMapping("/room")
-    public ResponseEntity<ApiResult> deleteRoom(@RequestParam String roomId
+    @DeleteMapping("/room/{roomId}")
+    public ResponseEntity<ApiResult> deleteRoom(@PathVariable String roomId
             , @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
@@ -61,8 +61,8 @@ public class ChatController {
         return ResponseEntity.ok(success(null));
     }
 
-    @PatchMapping("/room-enter")
-    public ResponseEntity<ApiResult> enterRoom(@RequestParam String roomId, @RequestParam String password,
+    @PatchMapping("/room-enter/{roomId}")
+    public ResponseEntity<ApiResult> enterRoom(@PathVariable String roomId, @RequestParam String password,
                                                    @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
@@ -70,20 +70,29 @@ public class ChatController {
         return ResponseEntity.ok(success(result));
     }
 
-    @PatchMapping("/room-leave")
-    public ResponseEntity<ApiResult> leaveRoom(@RequestParam String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+    @PatchMapping("/room-leave/{roomId}")
+    public ResponseEntity<ApiResult> leaveRoom(@PathVariable String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
         ChatRoomServiceResult result = chatService.leaveRoom(roomId, userId);
         return ResponseEntity.ok(success(result));
     }
 
-    @GetMapping("/message")
-    public ResponseEntity<ApiResult> getMessages(@RequestParam String roomId, @RequestParam LocalDateTime from
+    @GetMapping("/message/{roomId}")
+    public ResponseEntity<ApiResult> getMessages(@PathVariable String roomId, @RequestParam LocalDateTime from
             , @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
         List<Message> messages = chatService.getMessages(roomId, from ,userId);
         return ResponseEntity.ok(success(messages));
+    }
+
+    @PatchMapping("/chat-end/{roomId}")
+    public ResponseEntity<ApiResult> chatEnd(@PathVariable String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
+        Long userId=0L;
+        //                userId= provider.from(token);
+        chatService.chatEnd(roomId, userId);
+        return ResponseEntity.ok(success(null));
+
     }
 }
