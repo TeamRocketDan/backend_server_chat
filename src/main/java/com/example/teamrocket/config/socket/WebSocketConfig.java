@@ -21,7 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setPathMatcher(new AntPathMatcher(".")); // url을 chat/room/3 -> chat.room.3으로 참조하기 위한 설정
         registry.setApplicationDestinationPrefixes("/pub");
 
-        registry.enableSimpleBroker("/sub");
+        registry.enableStompBrokerRelay("/exchange");
     }
 
 }

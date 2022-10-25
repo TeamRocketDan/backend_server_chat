@@ -1,9 +1,6 @@
 package com.example.teamrocket.service;
 
-import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
-import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
-import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
-import com.example.teamrocket.chatRoom.domain.ChatRoomServiceResult;
+import com.example.teamrocket.chatRoom.domain.*;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
@@ -188,5 +185,17 @@ public class ChatServiceImpl implements ChatService{
         Collections.reverse(messages);
 
         return messages;
+    }
+
+    @Override
+    public ChatRoomParticipantDto chatEnd(String roomId, Long userId) {
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+                () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
+
+        var participant = chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom, userId)
+                .orElseThrow(() -> new ChatRoomException(NOT_PARTICIPATED_USER));
+
+        participant.setLeftAt(LocalDateTime.now());
+        return ChatRoomParticipantDto.of(participant);
     }
 }
