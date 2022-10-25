@@ -47,8 +47,11 @@ public class CustomItemWriter implements ItemWriter<List<Message>> {
 
     private List<Message> saveAllMessages(List<? extends List<Message>> items) {
         List<Message> willAddTotal = new ArrayList();
+        int cnt = 0;
         for (List<Message> item : items) {
+            if(cnt == 1) throw new RuntimeException();
             willAddTotal.addAll(item);
+            cnt++;
         }
         mongoTemplate.insertAll(willAddTotal);
         return willAddTotal;

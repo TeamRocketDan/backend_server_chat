@@ -29,6 +29,7 @@ public class BatchConfig {
         executionContextPromotionListener.setKeys(new String[]{"count"});
         return executionContextPromotionListener;
     }
+
     @Bean
     public Job messageJob(){
         return jobBuilderFactory.get("Batch Messages : "+ LocalDateTime.now().toString())
@@ -42,7 +43,7 @@ public class BatchConfig {
             @Value("#{jobParameters[roomIdWithDayOfMonthYear]}") String dayOfMonthYear
     ){
         return stepBuilderFactory.get("Batch Messages step : "+dayOfMonthYear)
-                .<List<Message>, List<Message>>chunk(5)
+                .<List<Message>, List<Message>>chunk(1000)
                 .reader(customItemReader)
                 .writer(customItemWriter)
                 .listener(promotionListener())

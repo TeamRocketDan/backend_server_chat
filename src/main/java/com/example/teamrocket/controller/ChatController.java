@@ -42,7 +42,6 @@ public class ChatController {
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
         ChatRoomDto chatRoom = chatService.editRoom(userId,roomId,param);
-
         return ResponseEntity.ok(chatRoom);
     }
 

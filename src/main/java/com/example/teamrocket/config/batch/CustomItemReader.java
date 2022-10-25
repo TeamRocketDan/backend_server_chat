@@ -26,8 +26,6 @@ public class CustomItemReader  implements ItemReader<List<Message>>, StepExecuti
     private final int READ_SIZE = 1000;
 
     @Autowired
-    private MongoTemplate mongoTemplate;
-    @Autowired
     private RedisTemplate<String,Message> redisTemplate;
 
 
@@ -40,6 +38,7 @@ public class CustomItemReader  implements ItemReader<List<Message>>, StepExecuti
     public ExitStatus afterStep(StepExecution stepExecution) {
         return stepExecution.getExitStatus();
     }
+
 
     @Override
     public List<Message> read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {

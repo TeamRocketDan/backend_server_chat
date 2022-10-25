@@ -55,6 +55,7 @@ public class BatchTest {
         public void createChatRoom() throws Exception{
             ChatRoom chatRoom = ChatRoom.builder().chatRoomId(ROOM_ID).build();
             ChatRoom save = mongoTemplate.save(chatRoom);
+            Assertions.assertThat(save.getChatRoomId()).isEqualTo(ROOM_ID);
         }
 
         @Test

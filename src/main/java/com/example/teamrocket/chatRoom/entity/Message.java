@@ -19,6 +19,7 @@ public class Message implements Serializable {
     @MongoId
     private String id;
 
+    private String imgPath;
     private String senderName;
     private String message;
     private LocalDateTime createdAt;

@@ -1,6 +1,7 @@
 package com.example.teamrocket.controller;
 
 import com.example.teamrocket.chatRoom.entity.Message;
+import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -27,10 +29,11 @@ public class BatchTrigerController {
     private final JobLauncher jobLauncher;
     private final Job messageJob;
     private final RedisTemplate<String, Message> redisTemplate;
+    private final RedisTemplateRepository redisTemplateRepository;
 
     @GetMapping
     public void testBatchMessage() {
-        Set<String> keys = redisTemplate.keys("*");
+        Set<String> keys = redisTemplateRepository.getAllTwoDaysAgoKeys();
 
         for (String key : keys) {
             log.info("Batch running ...");
