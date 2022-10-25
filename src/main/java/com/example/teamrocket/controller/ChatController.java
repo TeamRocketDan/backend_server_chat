@@ -1,9 +1,6 @@
 package com.example.teamrocket.controller;
 
-import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
-import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
-import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
-import com.example.teamrocket.chatRoom.domain.ChatRoomServiceResult;
+import com.example.teamrocket.chatRoom.domain.*;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.service.ChatService;
 import com.example.teamrocket.utils.ApiUtils.ApiResult;
@@ -91,8 +88,8 @@ public class ChatController {
     public ResponseEntity<ApiResult> chatEnd(@PathVariable String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token);
-        chatService.chatEnd(roomId, userId);
-        return ResponseEntity.ok(success(null));
+        ChatRoomParticipantDto participantDto = chatService.chatEnd(roomId, userId);
+        return ResponseEntity.ok(success(participantDto));
 
     }
 }
