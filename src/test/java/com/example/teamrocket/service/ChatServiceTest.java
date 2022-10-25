@@ -673,4 +673,62 @@ class ChatServiceTest {
             assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
+
+    @Test
+    void chatEndSuccess() {
+        //given
+        ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
+
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
+                .userId(1L).chatRoomMySql(chatRoomMySql).build();
+
+        given(chatRoomMySqlRepository.findById("1번방")).willReturn(
+                Optional.of(chatRoomMySql));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
+                .willReturn(Optional.of(participant1));
+
+
+        //when
+        var result = chatService.chatEnd("1번방",1L);
+
+        //then
+        assertNotNull(result.getLeftAt());
+    }
+
+    @Test
+    void chatEndFail_NoChatRoom() {
+        //given
+        given(chatRoomMySqlRepository.findById("1번방")).willReturn(
+                Optional.empty());
+        
+        //when
+        //then
+        try{
+            chatService.chatEnd("1번방",1L);
+        }catch (Exception e){
+            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
+        }
+
+    }
+
+    @Test
+    void chatEndFail_NotParticipated() {
+        //given
+        ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
+
+        given(chatRoomMySqlRepository.findById("1번방")).willReturn(
+                Optional.of(chatRoomMySql));
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
+                .willReturn(Optional.empty());
+
+
+        //when
+        //then
+        try{
+            chatService.chatEnd("1번방",1L);
+        }catch (Exception e){
+            assertEquals(NOT_PARTICIPATED_USER.getMessage(),e.getMessage());
+        }
+    }
+
 }

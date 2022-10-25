@@ -15,7 +15,7 @@ public class ChatRoomParticipantDto {
     private Long userId;
     private LocalDateTime leftAt;
 
-    public ChatRoomParticipantDto of(ChatRoomParticipant participant){
+    public static ChatRoomParticipantDto of(ChatRoomParticipant participant){
         return ChatRoomParticipantDto.builder()
                 .userId(participant.getUserId())
                 .leftAt(participant.getLeftAt())
