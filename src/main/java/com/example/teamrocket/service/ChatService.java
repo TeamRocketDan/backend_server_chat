@@ -25,4 +25,6 @@ public interface ChatService {
     ChatRoomServiceResult leaveRoom(String roomId, Long userId);
 
     List<Message> getMessages(String roomId, LocalDateTime from, Long userId);
+
+    void chatEnd(String roomId, Long userId);
 }

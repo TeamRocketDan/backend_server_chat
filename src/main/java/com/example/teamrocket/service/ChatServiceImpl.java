@@ -175,4 +175,15 @@ public class ChatServiceImpl implements ChatService{
 
         return messages;
     }
+
+    @Override
+    public void chatEnd(String roomId, Long userId) {
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+                () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
+
+        var participant = chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom, userId)
+                .orElseThrow(() -> new ChatRoomException(NOT_PARTICIPATED_USER));
+
+        participant.setLeftAt(LocalDateTime.now());
+    }
 }
