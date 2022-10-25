@@ -9,6 +9,7 @@ import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomParticipantRepository;
+import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.teamrocket.error.type.ChatRoomErrorCode.*;
+import static com.example.teamrocket.error.type.UserErrorCode.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -95,8 +98,8 @@ class ChatServiceTest {
         //then
         try{
             chatService.createRoom(1L,input);
-        } catch (Exception e){
-            assertEquals("유저를 찾을 수 없습니다.",e.getMessage());
+        } catch (UserException e){
+            assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
         }
 
 
@@ -127,7 +130,7 @@ class ChatServiceTest {
         try{
             chatService.createRoom(1L,input);
         } catch (Exception e){
-            assertEquals("여행 시작 날짜는 여행 끝 날짜 이전이여야 합니다.",e.getMessage());
+            assertEquals(TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE.getMessage(),e.getMessage());
         }
     }
 
@@ -137,11 +140,11 @@ class ChatServiceTest {
         //given
         List<ChatRoomMySql> roomLists = new ArrayList<>();
         ChatRoomMySql room1 = ChatRoomMySql.builder()
-                .title("채팅방1").privateRoom(true).build();
+                .title("채팅방1").privateRoom(false).build();
         ChatRoomMySql room2 = ChatRoomMySql.builder()
                 .title("채팅방2").privateRoom(false).build();
         ChatRoomMySql room3 = ChatRoomMySql.builder()
-                .title("채팅방3").privateRoom(true).deletedAt(LocalDateTime.now()).build();
+                .title("채팅방3").privateRoom(false).deletedAt(LocalDateTime.now()).build();
         ChatRoomMySql room4 = ChatRoomMySql.builder()
                 .title("채팅방4").privateRoom(true).build();
 
@@ -155,17 +158,17 @@ class ChatServiceTest {
         list.add(participant1);
 
         given(chatRoomMySqlRepository.findAll()).willReturn(roomLists);
-        given(chatRoomParticipantRepository.findAllByChatRoomMySql(room2)).willReturn(new ArrayList<>());
-        given(chatRoomParticipantRepository.findAllByChatRoomMySql(room3))
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(room1)).willReturn(new ArrayList<>());
+        given(chatRoomParticipantRepository.findAllByChatRoomMySql(room2))
                 .willReturn(list);
 
         //when
         var results = chatService.listRoom();
         //then
         assertEquals(2,results.size());
-        assertEquals("채팅방2",results.get(0).getTitle());
+        assertEquals("채팅방1",results.get(0).getTitle());
         assertEquals(0,results.get(0).getCurParticipant());
-        assertEquals("채팅방3",results.get(1).getTitle());
+        assertEquals("채팅방2",results.get(1).getTitle());
         assertEquals(1,results.get(1).getCurParticipant());
 
     }
@@ -213,8 +216,8 @@ class ChatServiceTest {
         //then
         try{
             chatService.editRoom(1L,"1번방",input);
-        }catch (RuntimeException e){
-            assertEquals("유저를 찾을 수 없습니다.",e.getMessage());
+        }catch (Exception e){
+            assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
         }
 
     }
@@ -233,8 +236,8 @@ class ChatServiceTest {
         //then
         try{
             chatService.editRoom(1L,"1번방",input);
-        }catch (RuntimeException e){
-            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+        }catch (Exception e){
+            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
 
     }
@@ -253,8 +256,8 @@ class ChatServiceTest {
         //then
         try{
             chatService.editRoom(0L,"1번방",input);
-        }catch (RuntimeException e){
-            assertEquals("방장이 아닙니다.",e.getMessage());
+        }catch (Exception e){
+            assertEquals(NOT_CHAT_ROOM_OWNER.getMessage(),e.getMessage());
         }
     }
 
@@ -280,7 +283,7 @@ class ChatServiceTest {
         try{
             chatService.editRoom(1L,"1번방",input);
         }catch (RuntimeException e){
-            assertEquals("여행 시작날짜는 현재 날짜 이후여야합니다.",e.getMessage());
+            assertEquals(START_DATE_MUST_BE_AFTER_TODAY.getMessage(),e.getMessage());
         }
     }
 
@@ -312,7 +315,7 @@ class ChatServiceTest {
         try{
             chatService.editRoom(1L,"1번방",input);
         }catch (RuntimeException e){
-            assertEquals("현재 채팅방 인원보다 채팅방 인원을 적게 수정할 수 없습니다.",e.getMessage());
+            assertEquals(MAX_PARTICIPANT_IS_TOO_SMALL.getMessage(),e.getMessage());
         }
     }
 
@@ -348,7 +351,7 @@ class ChatServiceTest {
         try{
             chatService.deleteRoom(1L,"1번방");
         }catch (RuntimeException e){
-            assertEquals("유저를 찾을 수 없습니다.",e.getMessage());
+            assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
 
@@ -364,7 +367,7 @@ class ChatServiceTest {
         try{
             chatService.deleteRoom(1L,"1번방");
         }catch (RuntimeException e){
-            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
 
@@ -381,7 +384,7 @@ class ChatServiceTest {
         try{
             chatService.deleteRoom(0L,"1번방");
         }catch (RuntimeException e){
-            assertEquals("방장이 아닙니다.",e.getMessage());
+            assertEquals(NOT_CHAT_ROOM_OWNER.getMessage(),e.getMessage());
         }
     }
 
@@ -434,7 +437,7 @@ class ChatServiceTest {
         try{
             chatService.enterRoom("1번방","1234",1L);
         }catch (Exception e){
-            assertEquals("이미 방에 참가한 사람입니다.",e.getMessage());
+            assertEquals(ALREADY_PARTICIPATE.getMessage(),e.getMessage());
         }
     }
 
@@ -474,7 +477,7 @@ class ChatServiceTest {
         try{
             chatService.enterRoom("1번방","1234",3L);
         }catch (Exception e){
-            assertEquals("정원을 넘어 들어갈 수 없습니다.",e.getMessage());
+            assertEquals(EXCEED_MAX_PARTICIPANTS.getMessage(),e.getMessage());
         }
     }
 
@@ -494,7 +497,7 @@ class ChatServiceTest {
         try{
             chatService.enterRoom("1번방","4321",3L);
         }catch (Exception e){
-            assertEquals("비밀번호가 일치하지 않습니다.",e.getMessage());
+            assertEquals(PASSWORD_NOT_MATCH.getMessage(),e.getMessage());
         }
     }
 
@@ -536,7 +539,7 @@ class ChatServiceTest {
         try{
             chatService.leaveRoom("1번방",1L);
         } catch (Exception e){
-            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
 
@@ -555,7 +558,7 @@ class ChatServiceTest {
         try{
             chatService.leaveRoom("1번방",3L);
         } catch (Exception e){
-            assertEquals("방에 참가한 이력이 없습니다.",e.getMessage());
+            assertEquals(NOT_PARTICIPATED_USER.getMessage(),e.getMessage());
         }
     }
 
@@ -622,7 +625,7 @@ class ChatServiceTest {
         try{
             chatService.getMessages("1번방", LocalDateTime.now().minusDays(1), 1L);
         }catch (Exception e){
-            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
 
@@ -642,7 +645,7 @@ class ChatServiceTest {
         try{
             chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
         }catch (Exception e){
-            assertEquals("방에 참가한 이력이 없습니다.",e.getMessage());
+            assertEquals(NOT_PARTICIPATED_USER.getMessage(),e.getMessage());
         }
     }
 
@@ -667,7 +670,7 @@ class ChatServiceTest {
         try{
             chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
         }catch (Exception e){
-            assertEquals("방을 찾을 수 없습니다.",e.getMessage());
+            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
 }
