@@ -13,11 +13,12 @@ import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,17 +52,15 @@ public class ChatServiceImpl implements ChatService{
 
     @Transactional(readOnly = true)
     @Override
-    public List<ChatRoomDto> listRoom() {
-        var chatRooms = chatRoomMySqlRepository.findAll().stream()
-                .filter(x->(!x.isPrivateRoom() &&  x.getDeletedAt()==null)).collect(Collectors.toList());
-        List<ChatRoomDto> results = new ArrayList<>(chatRooms.size());
-        for(ChatRoomMySql chatRoom : chatRooms){
-            ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
-            chatRoomDto.setCurParticipant(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom).size());
-            results.add(chatRoomDto);
+    public Page<ChatRoomMySql> listRoom(String rcate1, String rcate2, PageRequest pageRequest) {
+        Page<ChatRoomMySql> chatRooms;
+        if(rcate2 == null){
+            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndPrivateRoomFalseAndDeletedAtIsNullOrderByStart_date(rcate1,pageRequest);
+        }else{
+            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStart_date(rcate1,rcate2,pageRequest);
         }
 
-        return results;
+        return chatRooms;
     }
 
     @Override
