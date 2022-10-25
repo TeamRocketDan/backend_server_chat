@@ -21,6 +21,7 @@ public class Message implements Serializable {
 
     private String imgPath;
     private String senderName;
+    private String senderImgSrc;
     private String message;
     private LocalDateTime createdAt;
 }
