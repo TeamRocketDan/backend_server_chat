@@ -66,9 +66,7 @@ public class ChatServiceImpl implements ChatService{
             chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStart_date(rcate1,rcate2,pageRequest);
         }
 
-        return PagingResponse.fromEntity(
-                chatRooms.map(chatRoom -> ChatRoomDto.of(chatRoom))
-        );
+        return PagingResponse.fromEntity(chatRooms.map(ChatRoomDto::of));
     }
 
     @Override
