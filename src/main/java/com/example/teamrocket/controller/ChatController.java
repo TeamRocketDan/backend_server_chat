@@ -2,17 +2,15 @@ package com.example.teamrocket.controller;
 
 import com.example.teamrocket.chatRoom.domain.*;
 import com.example.teamrocket.chatRoom.entity.Message;
-import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.service.ChatService;
 import com.example.teamrocket.utils.ApiUtils.ApiResult;
+import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.example.teamrocket.utils.ApiUtils.success;
@@ -36,10 +34,10 @@ public class ChatController {
     }
 
     @GetMapping("/room-list")
-    public ResponseEntity<Page<ChatRoomMySql>> roomList(@RequestParam Integer page, @RequestParam Integer size,
+    public ResponseEntity<PagingResponse<ChatRoomDto>> roomList(@RequestParam Integer page, @RequestParam Integer size,
                                                         @RequestParam String rcate1, @RequestParam String rcate2){
         PageRequest pageRequest = PageRequest.of(page,size);
-        Page<ChatRoomMySql> results = chatService.listRoom(rcate1,rcate2,pageRequest);
+        PagingResponse<ChatRoomDto> results = chatService.listRoom(rcate1,rcate2,pageRequest);
         return ResponseEntity.ok(results);
     }
 

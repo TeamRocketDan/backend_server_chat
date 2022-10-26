@@ -13,6 +13,7 @@ import com.example.teamrocket.error.exception.ChatRoomException;
 import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
+import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -57,7 +58,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Transactional(readOnly = true)
     @Override
-    public Page<ChatRoomMySql> listRoom(String rcate1, String rcate2, PageRequest pageRequest) {
+    public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, PageRequest pageRequest) {
         Page<ChatRoomMySql> chatRooms;
         if(rcate2 == null){
             chatRooms = chatRoomMySqlRepository.findAllByRcate1AndPrivateRoomFalseAndDeletedAtIsNullOrderByStart_date(rcate1,pageRequest);
@@ -65,7 +66,9 @@ public class ChatServiceImpl implements ChatService{
             chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStart_date(rcate1,rcate2,pageRequest);
         }
 
-        return chatRooms;
+        return PagingResponse.fromEntity(
+                chatRooms.map(chatRoom -> ChatRoomDto.of(chatRoom))
+        );
     }
 
     @Override
