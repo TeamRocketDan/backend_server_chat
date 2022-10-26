@@ -30,7 +30,7 @@ public class RabbitChatController {
 
     @MessageMapping("chat.message.{roomId}")
     public void send(Message message, @DestinationVariable String roomId){
-        message.setCreatedAt(LocalDateTime.now());
+//        message.setCreatedAt(LocalDateTime.now());
         redisTemplateRepository.saveToLeft(roomId, message);
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
 
