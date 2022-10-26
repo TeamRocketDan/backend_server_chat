@@ -17,7 +17,7 @@ spring:
         enabled: false
     mongodb:
       uri: ${MONGO_HOST}
-      database: ${MONGO_NAME}
+      #database: ${MONGO_NAME}
 
   jpa:
 #    hibernate:
@@ -37,6 +37,12 @@ spring:
     password: ${RABBIT_PASSWORD}
     host: ${RABBIT_HOST}
     port: ${RABBIT_PORT}
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
 
 logging:
   level:
