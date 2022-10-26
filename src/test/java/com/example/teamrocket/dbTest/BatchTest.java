@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,10 +62,10 @@ public class BatchTest {
         @Test
         @DisplayName("Insert Data 2Days to Redis")
         public void saveTest() throws Exception{
-            String dayOfMessageStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String dayOfMessageStr = LocalDateTime.now().minusDays(3).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String redisRoomId = ROOM_ID+"#"+dayOfMessageStr;
 
-            String dayOfMessageStr2 = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String dayOfMessageStr2 = LocalDateTime.now().minusDays(2).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String redisRoomId2 = ROOM_ID+"#"+dayOfMessageStr2;
             for(int i=0;i<DATA_SIZE;i++){
                 Message m1 = Message.builder()
@@ -90,19 +91,27 @@ public class BatchTest {
 
         @Test
         @DisplayName("BatchTest")
+        @Commit
         public void batchTest() throws Exception {
-            String dayOfMessageStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
             webTestClient
                     .get()
                     .uri("/batch")
                     .exchange()
                     .expectStatus().isOk();
 
+            String dayOfMessageStr = LocalDateTime.now().minusDays(3).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             MatchOperation match = new MatchOperation(Criteria.where("_id").is(ROOM_ID+"#"+dayOfMessageStr));
             Aggregation aggregate = Aggregation.newAggregation(match, Aggregation.project().and("messages").project("size").as("count"));
             List<Document> mappedResults = mongoTemplate.aggregate(aggregate, DayOfMessages.class, Document.class).getMappedResults();
             int count = (int) mappedResults.get(0).get("count");
-            System.out.println(count);
             Assertions.assertThat(count).isEqualTo(1000);
+
+            String dayOfMessageStr2 = LocalDateTime.now().minusDays(2).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            MatchOperation match2 = new MatchOperation(Criteria.where("_id").is(ROOM_ID+"#"+dayOfMessageStr2));
+            Aggregation aggregate2 = Aggregation.newAggregation(match2, Aggregation.project().and("messages").project("size").as("count"));
+            List<Document> mappedResults2 = mongoTemplate.aggregate(aggregate2, DayOfMessages.class, Document.class).getMappedResults();
+            int count2 = (int) mappedResults2.get(0).get("count");
+            Assertions.assertThat(count2).isEqualTo(2000);
         }
 }

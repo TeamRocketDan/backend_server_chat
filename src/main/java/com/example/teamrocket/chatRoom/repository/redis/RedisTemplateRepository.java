@@ -63,7 +63,9 @@ public class RedisTemplateRepository {
     }
 
     public void saveToLeft(String roomId, Message message){
-        redisTemplate.opsForList().leftPush(roomId, message);
+        String dayOfMessageStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String redisRoomId = roomId+"#"+dayOfMessageStr;
+        redisTemplate.opsForList().leftPush(redisRoomId, message);
     }
     public List<Message> getAllMessageByRoomId(String roomId){
         return redisTemplate.opsForList().range(roomId, 0, -1);
