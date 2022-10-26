@@ -81,11 +81,10 @@ public class ChatController {
     }
 
     @GetMapping("/message/{roomId}")
-    public ResponseEntity<ApiResult> getMessages(@PathVariable String roomId, @RequestParam LocalDateTime from
-            , @RequestHeader(name = "X_AUTH_TOKEN") String token){
+    public ResponseEntity<ApiResult> getMessages(@PathVariable String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
         Long userId=0L;
         //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        List<Message> messages = chatService.getMessages(roomId, from ,userId);
+        List<Message> messages = chatService.getMessages(roomId,userId);
         return ResponseEntity.ok(success(messages));
     }
 

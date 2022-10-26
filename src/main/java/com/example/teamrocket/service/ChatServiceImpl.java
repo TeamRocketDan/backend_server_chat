@@ -16,15 +16,10 @@ import com.example.teamrocket.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +36,7 @@ public class ChatServiceImpl implements ChatService{
     private final ChatRoomMySqlRepository chatRoomMySqlRepository;
     private final ChatRoomMongoRepository chatRoomMongoRepository;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
+    private final RedisTemplateRepository redisTemplateRepository;
 
     @Override
     public ChatRoomDto createRoom(Long userId, ChatRoomCreateInput param) {
@@ -116,7 +112,6 @@ public class ChatServiceImpl implements ChatService{
         }
 
         chatRoom.delete();
-        chatRoomMySqlRepository.save(chatRoom);
         chatRoomParticipantRepository.deleteAllByChatRoomMySql(chatRoom);
     }
 
@@ -161,13 +156,13 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public List<Message> getMessages(String roomId,LocalDateTime from, Long userId) {
+    public List<Message> getMessages(String roomId, Long userId) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom, userId)
-                        .orElseThrow(() -> new ChatRoomException(NOT_PARTICIPATED_USER));
-
+        ChatRoomParticipant participant = chatRoomParticipantRepository
+                .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
+                        () -> new ChatRoomException(NOT_PARTICIPATED_USER));
         //redis 에서 페이징 처리해서 가져와야함 parmeter 로 pageable 필요
         //redis 에서 가져오는걸로 변경 페이징 필요 (요일별로 가져온다던지)
 
@@ -179,7 +174,7 @@ public class ChatServiceImpl implements ChatService{
         List<Message> messages = null;
 
         messages = messages.stream().takeWhile(
-                x->x.getCreatedAt().isAfter(from)).collect(Collectors.toList());
+                x->x.getCreatedAt().isAfter(participant.getLeftAt())).collect(Collectors.toList());
         Collections.reverse(messages);
 
         return messages;

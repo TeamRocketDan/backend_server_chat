@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,7 +23,7 @@ public interface ChatService {
 
     ChatRoomServiceResult leaveRoom(String roomId, Long userId);
 
-    List<Message> getMessages(String roomId, LocalDateTime from, Long userId);
+    List<Message> getMessages(String roomId, Long userId);
 
     ChatRoomParticipantDto chatEnd(String roomId, Long userId);
 }
