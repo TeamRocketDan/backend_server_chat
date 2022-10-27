@@ -17,9 +17,11 @@ import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +46,7 @@ public class ChatServiceImpl implements ChatService{
         User user = userRepository.findById(userId).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
 
-        if(param.getEnd_date().isBefore(param.getStart_date())){
+        if(param.getEndDate().isBefore(param.getStartDate())){
             throw new ChatRoomException(TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE);
         }
         ChatRoom chatRoomMongo = ChatRoom.builder().build();
@@ -61,11 +63,10 @@ public class ChatServiceImpl implements ChatService{
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, PageRequest pageRequest) {
         Page<ChatRoomMySql> chatRooms;
         if(rcate2 == null){
-            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndPrivateRoomFalseAndDeletedAtIsNullOrderByStart_date(rcate1,pageRequest);
+            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,pageRequest);
         }else{
-            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStart_date(rcate1,rcate2,pageRequest);
+            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
         }
-
         return PagingResponse.fromEntity(chatRooms.map(ChatRoomDto::of));
     }
 
@@ -83,11 +84,11 @@ public class ChatServiceImpl implements ChatService{
         }
 
 
-        if(param.getStart_date().isBefore(LocalDateTime.now())){
+        if(param.getStartDate().isBefore(LocalDate.now())){
             throw new ChatRoomException(START_DATE_MUST_BE_AFTER_TODAY);
         }
 
-        if(param.getEnd_date().isBefore(param.getStart_date())){
+        if(param.getEndDate().isBefore(param.getStartDate())){
             throw new ChatRoomException(TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE);
         }
 
@@ -112,6 +113,8 @@ public class ChatServiceImpl implements ChatService{
             throw new ChatRoomException(NOT_CHAT_ROOM_OWNER);
         }
 
+        // 이미 제거된 방입니다 추가
+
         chatRoom.delete();
         chatRoomParticipantRepository.deleteAllByChatRoomMySql(chatRoom);
     }
@@ -119,6 +122,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public ChatRoomServiceResult enterRoom(String roomId, String password , Long userId) {
+        // 제거된 방에 대한 처리 필요
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
         List<ChatRoomParticipant> participants =
@@ -157,7 +161,7 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public List<Message> getMessages(String roomId, Long userId) {
+    public List<Message> getMessages(String roomId, Long userId, Pageable pageable) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
