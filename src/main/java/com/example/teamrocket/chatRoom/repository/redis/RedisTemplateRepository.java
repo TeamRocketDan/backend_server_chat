@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +52,7 @@ public class RedisTemplateRepository {
         return result;
     }
     public void updateExpireTime(String roomId, ChatRoomEditInput param) {
-        Duration between = Duration.between(param.getStart_date(), param.getEnd_date().plusDays(1));
+        Duration between = Duration.between(param.getStartDate(), param.getEndDate().plusDays(1));
         redisTemplate.expire(roomId,between.getSeconds(),TimeUnit.SECONDS);
     }
 
