@@ -70,6 +70,7 @@ public class BatchTest {
             for(int i=0;i<DATA_SIZE;i++){
                 Message m1 = Message.builder()
                         .message("Message : "+i)
+                        .roomId(ROOM_ID)
                         .createdAt(LocalDateTime.now())
                         .build();
                 redisTemplate.opsForList().leftPush(redisRoomId, m1);
@@ -77,6 +78,7 @@ public class BatchTest {
             for(int i=0;i<DATA_SIZE*2;i++){
                 Message m2 = Message.builder()
                         .message("Message : "+i)
+                        .roomId(ROOM_ID)
                         .createdAt(LocalDateTime.now())
                         .build();
                 redisTemplate.opsForList().leftPush(redisRoomId2, m2);
