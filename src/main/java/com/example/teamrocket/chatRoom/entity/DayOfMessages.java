@@ -21,4 +21,5 @@ public class DayOfMessages {
 
     @DocumentReference
     private List<Message> messages;
+    private int messagesCount;
 }
