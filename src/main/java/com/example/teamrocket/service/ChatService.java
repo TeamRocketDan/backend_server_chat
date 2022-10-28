@@ -2,11 +2,12 @@ package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.*;
 import com.example.teamrocket.chatRoom.entity.Message;
+import com.example.teamrocket.utils.MessagePagingResponse;
 import com.example.teamrocket.utils.PagingResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Service
 public interface ChatService {
@@ -22,7 +23,9 @@ public interface ChatService {
 
     ChatRoomServiceResult leaveRoom(String roomId, Long userId);
 
-    List<Message> getMessages(String roomId, Long userId);
+    MessagePagingResponse<Message> getMessages(String roomId, Long userId, LocalDate date, Integer page, Integer size);
+
+    MessagePagingResponse<Message> getMessagesMongo(String roomId, Long userId,Integer page, Integer size);
 
     ChatRoomParticipantDto chatEnd(String roomId, Long userId);
 }

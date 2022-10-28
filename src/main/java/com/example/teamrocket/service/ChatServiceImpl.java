@@ -2,10 +2,13 @@ package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.*;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
+import com.example.teamrocket.chatRoom.entity.DayOfMessages;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
+import com.example.teamrocket.chatRoom.repository.mongo.DayOfMessageRepository;
+import com.example.teamrocket.chatRoom.repository.mongo.MessageRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomParticipantRepository;
 import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
@@ -13,18 +16,19 @@ import com.example.teamrocket.error.exception.ChatRoomException;
 import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
+import com.example.teamrocket.utils.MessagePagingResponse;
 import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.example.teamrocket.error.type.ChatRoomErrorCode.*;
@@ -40,6 +44,8 @@ public class ChatServiceImpl implements ChatService{
     private final ChatRoomMongoRepository chatRoomMongoRepository;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
     private final RedisTemplateRepository redisTemplateRepository;
+    private final DayOfMessageRepository dayOfMessageRepository;
+    private final MessageRepository messageRepository;
 
     @Override
     public ChatRoomDto createRoom(Long userId, ChatRoomCreateInput param) {
@@ -161,28 +167,82 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public List<Message> getMessages(String roomId, Long userId, Pageable pageable) {
+    public MessagePagingResponse<Message> getMessages(String roomId, Long userId,LocalDate date,Integer page, Integer size) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         ChatRoomParticipant participant = chatRoomParticipantRepository
                 .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
                         () -> new ChatRoomException(NOT_PARTICIPATED_USER));
-        //redis 에서 페이징 처리해서 가져와야함 parmeter 로 pageable 필요
-        //redis 에서 가져오는걸로 변경 페이징 필요 (요일별로 가져온다던지)
+
+        var leftTime = participant.getLeftAt();
+
+        MessagePagingResponse<Message> response = new MessagePagingResponse<>();
+        response.setLastDay(leftTime.toLocalDate().isEqual(date));
+        LocalDate targetDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String targetDateString = targetDate.format(formatter);
+        String dayOfMessageId = chatRoom.getId()+"#"+targetDateString;
+
+        List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page,size);
+        messages = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime)).collect(Collectors.toList());
+        response.setFromList(messages,size,date);
+
+        return response;
+    }
+
+    @Override
+    public MessagePagingResponse<Message> getMessagesMongo(String roomId, Long userId, Integer page, Integer size) {
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+                () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
+
+        ChatRoomParticipant participant = chatRoomParticipantRepository
+                .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
+                        () -> new ChatRoomException(NOT_PARTICIPATED_USER));
+
+        var leftTime = participant.getLeftAt();
 
 
-        ChatRoom chatRoomMongo = chatRoomMongoRepository.findById(roomId).orElseThrow(
-                ()->new ChatRoomException(CHAT_ROOM_NOT_FOUND));
+        MessagePagingResponse<Message> response = new MessagePagingResponse<>();
+        LocalDate targetDate = LocalDate.now().minusDays(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        int pastPage = 0;
 
-//        List<Message> messages = chatRoomMongo.getMessages();
-        List<Message> messages = null;
+        while(true){
+            targetDate = targetDate.minusDays(1);
 
-        messages = messages.stream().takeWhile(
-                x->x.getCreatedAt().isAfter(participant.getLeftAt())).collect(Collectors.toList());
-        Collections.reverse(messages);
+            if(targetDate.minusDays(1).isBefore(leftTime.toLocalDate())){
+                response.setLastDay(true);
+            }
 
-        return messages;
+            String targetDateString = targetDate.format(formatter);
+            String dayOfMessageId = chatRoom.getId()+"#"+targetDateString;
+            Optional<DayOfMessages> dayOfMessages = dayOfMessageRepository.findById(dayOfMessageId);
+
+            if(dayOfMessages.isEmpty() && response.isLastDay()){
+                break;
+            }else if(dayOfMessages.isEmpty()){
+                continue;
+            }
+
+            int dayOfMessageCount = dayOfMessages.get().getMessagesCount();
+            int addPage = dayOfMessageCount%size == 0?
+                    dayOfMessages.get().getMessagesCount()/size
+                    : dayOfMessages.get().getMessagesCount()/size+1;
+
+            if(pastPage+addPage>=page){
+                break;
+            }else {
+                pastPage += addPage;
+            }
+
+        }
+
+        PageRequest pageRequest = PageRequest.of(page-pastPage,size);
+        Page<Message> messagePage= messageRepository.findAllByRoomId(roomId, pageRequest);
+        response.setFromPage(messagePage,targetDate);
+
+        return response;
     }
 
     @Override
@@ -190,8 +250,9 @@ public class ChatServiceImpl implements ChatService{
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        var participant = chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom, userId)
-                .orElseThrow(() -> new ChatRoomException(NOT_PARTICIPATED_USER));
+        ChatRoomParticipant participant = chatRoomParticipantRepository
+                .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
+                        () -> new ChatRoomException(NOT_PARTICIPATED_USER));
 
         participant.setLeftAt(LocalDateTime.now());
         return ChatRoomParticipantDto.of(participant);
