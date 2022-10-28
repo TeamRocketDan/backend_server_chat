@@ -1,6 +1,8 @@
 package com.example.teamrocket.dbTest;
 
+import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.Message;
+import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,8 +13,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +28,37 @@ public class RedisTest {
 
     @Autowired
     private RedisTemplate<String, Message> redisTemplate;
+
+    @Autowired
+    private RedisTemplateRepository redisTemplateRepository;
+
+    @Test
+    @DisplayName("dateTime duration fail")
+    public void fail() throws Exception{
+        redisTemplate.opsForList().leftPush("abcd", null);
+        UnsupportedTemporalTypeException un = org.junit.jupiter.api.Assertions.assertThrows(
+                UnsupportedTemporalTypeException.class,
+                () -> Duration.between(LocalDate.now(), LocalDate.now().plusDays(1))
+        );
+        Assertions.assertThat(un).isInstanceOf(UnsupportedTemporalTypeException.class);
+    }
+
+    @Test
+    @DisplayName("LocalDateTime duration success")
+    public void test() throws Exception{
+        String roomId = "abcd";
+        Message build = Message.builder()
+                .senderName("holy")
+                .build();
+
+        ChatRoomEditInput build1 = ChatRoomEditInput.builder()
+                .start_date(LocalDateTime.now().plusDays(7))
+                .end_date(LocalDateTime.now().plusDays(10))
+                .build();
+        redisTemplateRepository.saveToLeft(roomId,build);
+        redisTemplateRepository.updateExpireTime(roomId,build1);
+    }
+
 
     @Test
     @DisplayName("redis expire date init")
@@ -84,7 +119,10 @@ public class RedisTest {
                 tenDaysAgo
         )
         );
-
+        redisTemplate.opsForList().leftPush("backup", Message.builder().build());
+        redisTemplate.opsForList().leftPush("backup1", Message.builder().build());
+        redisTemplate.opsForList().leftPush("backup2", Message.builder().build());
+        redisTemplate.opsForList().leftPush("backup3", Message.builder().build());
         //given
         for (LocalDateTime timeStamp : timeStamps) {
             String parser= timeStamp.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -110,7 +148,7 @@ public class RedisTest {
         // Scan Build Needs specific number depends on today
 
         // O(1) 로 스캔해서 가져오기
-        ScanOptions build = ScanOptions.scanOptions().match("*").build();
+        ScanOptions build = ScanOptions.scanOptions().match("*#*").build();
         Cursor<String> scan = redisTemplate.scan(build);
         List<String> result = new ArrayList<>();
 
@@ -119,7 +157,8 @@ public class RedisTest {
             String yesterdayVerify = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String currentString = scan.next();
             String[] inputs = currentString.split("#");
-            if(inputs[1].equals(todayVerify) || inputs[1].equals(yesterdayVerify)){continue;}
+            if(inputs.length < 2|| inputs[1].equals(todayVerify) || inputs[1].equals(yesterdayVerify)){continue;}
+            System.out.println("===============================>>>>"+currentString);
             result.add(currentString);
         }
 

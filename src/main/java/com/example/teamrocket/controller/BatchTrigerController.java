@@ -35,7 +35,7 @@ public class BatchTrigerController {
     public void testBatchMessage() {
         int cnt = 1;
         Set<String> keys = redisTemplateRepository.getAllTwoDaysAgoKeys();
-
+        log.info("This is keys Size : "+ keys.size());
         for (String key : keys) {
             Long size = redisTemplate.opsForList().size(key);
             log.info(" ===============>>>>>>>>>>>>>>> Batch running ... current : "+cnt+" / "+size);
