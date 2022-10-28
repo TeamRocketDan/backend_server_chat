@@ -1,6 +1,9 @@
 package com.example.teamrocket.chatRoom.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 import org.springframework.data.redis.core.RedisHash;
@@ -19,9 +22,17 @@ public class Message implements Serializable {
     @MongoId
     private String id;
 
+    private String roodId;
     private String imgPath;
     private String senderName;
     private String senderImgSrc;
     private String message;
     private LocalDateTime createdAt;
+
+    public void setMessage(String message){
+        this.message = message;
+    }
+    public void setCreatedAt(LocalDateTime createdAt){
+        this.createdAt = createdAt;
+    }
 }

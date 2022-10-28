@@ -22,7 +22,7 @@ public class RabbitChatController {
     @MessageMapping("chat.enter.{roomId}")
     public void enterMessage(Message message,@DestinationVariable String roomId){
 
-//        message.setMessage(message.getSenderName() + "님이 채팅방에 참여하였습니다.");
+        message.setMessage(message.getSenderName() + "님이 채팅방에 참여하였습니다.");
         redisTemplateRepository.saveToLeft(roomId, message);
 
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
@@ -39,7 +39,7 @@ public class RabbitChatController {
     @MessageMapping("chat.leave.{roomId}")
     public void leaveMessage(Message message,@DestinationVariable String roomId){
 
-//        message.setMessage(message.getMessage() + "님이 채팅방에서 나가셨습니다.");
+        message.setMessage(message.getMessage() + "님이 채팅방에서 나가셨습니다.");
         redisTemplateRepository.saveToLeft(roomId, message);
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
