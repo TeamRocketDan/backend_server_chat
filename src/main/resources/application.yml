@@ -17,7 +17,7 @@ spring:
         enabled: false
     mongodb:
       uri: ${MONGO_HOST}
-      #database: ${MONGO_NAME}
+      database: ${MONGO_NAME}
 
   jpa:
 #    hibernate:

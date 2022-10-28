@@ -29,10 +29,12 @@ public class Message implements Serializable {
     private String message;
     private LocalDateTime createdAt;
 
-    public void setMessage(String message){
-        this.message = message;
+    public void updateRoomIdAndCreatedAt(String id){
+        this.roomId = roomId;
+        this.createdAt = LocalDateTime.now();
     }
-    public void setCreatedAt(LocalDateTime createdAt){
-        this.createdAt = createdAt;
+    
+    public void updateMessage(String message){
+        this.message = message;
     }
 }
