@@ -22,7 +22,7 @@ public class Message implements Serializable {
     @MongoId
     private String id;
 
-    private String roodId;
+    private String roomId;
     private String imgPath;
     private String senderName;
     private String senderImgSrc;
