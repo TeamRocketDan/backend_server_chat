@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,13 +68,19 @@ public class ChatServiceImpl implements ChatService{
     @Transactional(readOnly = true)
     @Override
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, PageRequest pageRequest) {
-        Page<ChatRoomMySql> chatRooms;
-        if(rcate2 == null){
-            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,pageRequest);
-        }else{
-            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
+        Page<ChatRoomMySql> chatRooms
+                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
+
+        List<ChatRoomDto> contents = new ArrayList<>(chatRooms.getContent().size());
+        for(ChatRoomMySql chatRoom:chatRooms.getContent()){
+            ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
+            chatRoomDto.setCurParticipant(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom).size());
+            contents.add(chatRoomDto);
         }
-        return PagingResponse.fromEntity(chatRooms.map(ChatRoomDto::of));
+
+        PagingResponse result = PagingResponse.fromEntity(chatRooms);
+        result.setContent(contents);
+        return result;
     }
 
     @Override
@@ -187,6 +194,9 @@ public class ChatServiceImpl implements ChatService{
         List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page,size);
         messages = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime)).collect(Collectors.toList());
         response.setFromList(messages,size,date);
+        if(leftTime.toLocalDate().equals(LocalDate.now())){
+            response.setLastDay(true);
+        }
 
         return response;
     }
