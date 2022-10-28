@@ -19,9 +19,17 @@ public class Message implements Serializable {
     @MongoId
     private String id;
 
-    private String imgPath;
+    private String roomId;
     private String senderName;
     private String senderImgSrc;
     private String message;
     private LocalDateTime createdAt;
+
+    public void updateRoomIdAndCreatedAt(String id){
+        this.roomId = roomId;
+        this.createdAt = LocalDateTime.now();
+    }
+    public void updateMessage(String message){
+        this.message = message;
+    }
 }

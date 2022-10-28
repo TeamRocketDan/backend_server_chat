@@ -13,15 +13,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/stomp/chat").setAllowedOrigins("http://localhost:8080").withSockJS();
+        registry.addEndpoint("/stomp/chat").setAllowedOriginPatterns("*").withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setPathMatcher(new AntPathMatcher(".")); // url을 chat/room/3 -> chat.room.3으로 참조하기 위한 설정
         registry.setApplicationDestinationPrefixes("/pub");
-
-        registry.enableStompBrokerRelay("/exchange");
+        registry.enableStompBrokerRelay("/exchange")
+                .setRelayHost("52.78.188.101")
+                .setRelayPort(61613);
     }
 
 }

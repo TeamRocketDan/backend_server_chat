@@ -84,7 +84,10 @@ public class RedisTest {
                 tenDaysAgo
         )
         );
-
+        redisTemplate.opsForList().leftPush("backup", Message.builder().build());
+        redisTemplate.opsForList().leftPush("backup1", Message.builder().build());
+        redisTemplate.opsForList().leftPush("backup2", Message.builder().build());
+        redisTemplate.opsForList().leftPush("backup3", Message.builder().build());
         //given
         for (LocalDateTime timeStamp : timeStamps) {
             String parser= timeStamp.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -110,7 +113,7 @@ public class RedisTest {
         // Scan Build Needs specific number depends on today
 
         // O(1) 로 스캔해서 가져오기
-        ScanOptions build = ScanOptions.scanOptions().match("*").build();
+        ScanOptions build = ScanOptions.scanOptions().match("*#*").build();
         Cursor<String> scan = redisTemplate.scan(build);
         List<String> result = new ArrayList<>();
 
@@ -119,7 +122,8 @@ public class RedisTest {
             String yesterdayVerify = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String currentString = scan.next();
             String[] inputs = currentString.split("#");
-            if(inputs[1].equals(todayVerify) || inputs[1].equals(yesterdayVerify)){continue;}
+            if(inputs.length < 2|| inputs[1].equals(todayVerify) || inputs[1].equals(yesterdayVerify)){continue;}
+            System.out.println("===============================>>>>"+currentString);
             result.add(currentString);
         }
 
