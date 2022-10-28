@@ -78,4 +78,8 @@ public class RedisTemplateRepository {
         RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
         connection.flushAll();
     }
+
+    public List<Message> getMessage(String roomId, int page, int size){
+        return redisTemplate.opsForList().range(roomId, page *size, (page + 1) *size);
+    }
 }
