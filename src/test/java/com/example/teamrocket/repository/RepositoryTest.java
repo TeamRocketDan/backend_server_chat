@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -31,14 +32,13 @@ public class RepositoryTest {
         User byId = userRepository.findById(1L).get();
         ChatRoomCreateInput input = ChatRoomCreateInput.builder()
                 .title("채팅방1")
-                .start_date(LocalDateTime.now())
-                .end_date(LocalDateTime.now().minusDays(1))
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().minusDays(1))
                 .maxParticipant(8)
                 .privateRoom(false)
                 .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
-                .rcate3("rcate3")
                 .longitude("위도")
                 .latitude("경도")
                 .build();

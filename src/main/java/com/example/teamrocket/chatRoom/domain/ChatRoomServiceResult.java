@@ -1,6 +1,9 @@
 package com.example.teamrocket.chatRoom.domain;
 
 
+import lombok.Getter;
+
+@Getter
 public class ChatRoomServiceResult {
 
    private final String chatRoomId;

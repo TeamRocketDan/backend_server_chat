@@ -1,8 +1,9 @@
 package com.example.teamrocket.chatRoom.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -12,8 +13,10 @@ import java.time.LocalDateTime;
 public class ChatRoomEditInput {
 
     private String title;
-    private LocalDateTime start_date;
-    private LocalDateTime end_date;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private LocalDate startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private LocalDate endDate;
     private int maxParticipant;
     private boolean privateRoom;
     private String password;

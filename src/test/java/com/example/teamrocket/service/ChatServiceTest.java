@@ -3,12 +3,12 @@ package com.example.teamrocket.service;
 import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
-import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomParticipantRepository;
+import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
 import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
@@ -18,8 +18,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +51,9 @@ class ChatServiceTest {
     @Mock
     private ChatRoomParticipantRepository chatRoomParticipantRepository;
 
+    @Mock
+    private RedisTemplateRepository redisTemplateRepository;
+
     @InjectMocks
     private ChatServiceImpl chatService;
 
@@ -56,18 +62,18 @@ class ChatServiceTest {
         //given
         ChatRoomCreateInput input = ChatRoomCreateInput.builder()
                 .title("채팅방1")
-                .start_date(LocalDateTime.now())
-                .end_date(LocalDateTime.now().plusDays(1))
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(1))
                 .maxParticipant(8)
                 .privateRoom(false)
                 .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
-                .rcate3("rcate3")
                 .longitude("위도")
                 .latitude("경도")
                 .build();
 
+        given(chatRoomMongoRepository.save(any())).willReturn(ChatRoom.builder().chatRoomId("1번방").build());
         given(chatRoomMySqlRepository.save(any())).willReturn(new ChatRoomMySql());
         given(userRepository.findById(1L)).willReturn(Optional.of(User.builder().id(1L).build()));
 
@@ -111,14 +117,13 @@ class ChatServiceTest {
         //given
         ChatRoomCreateInput input = ChatRoomCreateInput.builder()
                 .title("채팅방1")
-                .start_date(LocalDateTime.now())
-                .end_date(LocalDateTime.now().minusDays(1))
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().minusDays(1))
                 .maxParticipant(8)
                 .privateRoom(false)
                 .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
-                .rcate3("rcate3")
                 .longitude("위도")
                 .latitude("경도")
                 .build();
@@ -140,36 +145,37 @@ class ChatServiceTest {
         //given
         List<ChatRoomMySql> roomLists = new ArrayList<>();
         ChatRoomMySql room1 = ChatRoomMySql.builder()
-                .title("채팅방1").privateRoom(false).build();
+                .title("채팅방1").rcate1("서울시").build();
         ChatRoomMySql room2 = ChatRoomMySql.builder()
-                .title("채팅방2").privateRoom(false).build();
+                .title("채팅방2").rcate1("서울시").build();
         ChatRoomMySql room3 = ChatRoomMySql.builder()
-                .title("채팅방3").privateRoom(false).deletedAt(LocalDateTime.now()).build();
-        ChatRoomMySql room4 = ChatRoomMySql.builder()
-                .title("채팅방4").privateRoom(true).build();
+                .title("채팅방3").rcate1("서울시").build();
 
         roomLists.add(room1);
         roomLists.add(room2);
         roomLists.add(room3);
-        roomLists.add(room4);
 
+        PageRequest pageRequest = PageRequest.of(0,10);
+        Page<ChatRoomMySql> chatRoomMySqlPage = new PageImpl<>(roomLists);
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder().build();
         List<ChatRoomParticipant> list = new ArrayList<>();
         list.add(participant1);
 
-        given(chatRoomMySqlRepository.findAll()).willReturn(roomLists);
+        given(chatRoomMySqlRepository
+                .findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate("서울시","동작구",pageRequest))
+                .willReturn(chatRoomMySqlPage);
         given(chatRoomParticipantRepository.findAllByChatRoomMySql(room1)).willReturn(new ArrayList<>());
         given(chatRoomParticipantRepository.findAllByChatRoomMySql(room2))
                 .willReturn(list);
 
         //when
-        var results = chatService.listRoom();
+        var results = chatService.listRoom("서울시","동작구",pageRequest);
         //then
-        assertEquals(2,results.size());
-        assertEquals("채팅방1",results.get(0).getTitle());
-        assertEquals(0,results.get(0).getCurParticipant());
-        assertEquals("채팅방2",results.get(1).getTitle());
-        assertEquals(1,results.get(1).getCurParticipant());
+        assertEquals(3,results.getSize());
+        assertEquals("채팅방1",results.getContent().get(0).getTitle());
+        assertEquals(0,results.getContent().get(0).getCurParticipant());
+        assertEquals("채팅방2",results.getContent().get(1).getTitle());
+        assertEquals(1,results.getContent().get(1).getCurParticipant());
 
     }
 
@@ -179,8 +185,8 @@ class ChatServiceTest {
         //given
         ChatRoomEditInput input = ChatRoomEditInput.builder()
                 .title("채팅방1")
-                .start_date(LocalDateTime.now().plusDays(2))
-                .end_date(LocalDateTime.now().plusDays(4))
+                .startDate(LocalDate.now().plusDays(2))
+                .endDate(LocalDate.now().plusDays(4))
                 .maxParticipant(8)
                 .password("1234")
                 .privateRoom(false)
@@ -192,6 +198,7 @@ class ChatServiceTest {
                 Optional.of(ChatRoomMySql.builder().owner(user).build()));
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
 
         //when
         var result = chatService.editRoom(1L,"1번방",input);
@@ -267,8 +274,8 @@ class ChatServiceTest {
         //given
         ChatRoomEditInput input = ChatRoomEditInput.builder()
                 .title("채팅방1")
-                .start_date(LocalDateTime.now().minusDays(1))
-                .end_date(LocalDateTime.now().plusDays(4))
+                .startDate(LocalDate.now().minusDays(1))
+                .endDate(LocalDate.now().plusDays(4))
                 .maxParticipant(8)
                 .password("1234")
                 .privateRoom(false)
@@ -293,8 +300,8 @@ class ChatServiceTest {
         //given
         ChatRoomEditInput input = ChatRoomEditInput.builder()
                 .title("채팅방1")
-                .start_date(LocalDateTime.now().plusDays(1))
-                .end_date(LocalDateTime.now().plusDays(4))
+                .startDate(LocalDate.now().plusDays(1))
+                .endDate(LocalDate.now().plusDays(4))
                 .maxParticipant(1)
                 .password("1234")
                 .privateRoom(false)
@@ -330,15 +337,10 @@ class ChatServiceTest {
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
-        ArgumentCaptor<ChatRoomMySql> captor = ArgumentCaptor.forClass(ChatRoomMySql.class);
-
         //when
         chatService.deleteRoom(1L,"1번방");
 
         //then
-        verify(chatRoomMySqlRepository,times(1)).save(captor.capture());
-        ChatRoomMySql chatRoomMySqlCaptured = captor.getValue();
-        assertNotNull(chatRoomMySqlCaptured.getDeletedAt());
 
     }
 
@@ -605,7 +607,7 @@ class ChatServiceTest {
 
 
         //when
-        List<Message> results = chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
+        List<Message> results = chatService.getMessages("1번방",1L);
 
         //then
         assertEquals(2,results.size());
@@ -622,7 +624,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getMessages("1번방", LocalDateTime.now().minusDays(1), 1L);
+            chatService.getMessages("1번방", 1L,LocalDate.now(),10,10);
         }catch (Exception e){
             assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
@@ -642,34 +644,9 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
+            chatService.getMessages("1번방", 1L,LocalDate.now(),10,10);
         }catch (Exception e){
             assertEquals(NOT_PARTICIPATED_USER.getMessage(),e.getMessage());
-        }
-    }
-
-    @Test
-    void getMessagesFail_NoRoomMongo() {
-        //given
-        ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
-
-        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).chatRoomMySql(chatRoomMySql).build();
-
-        given(chatRoomMySqlRepository.findById("1번방")).willReturn(
-                Optional.of(chatRoomMySql));
-        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
-                .willReturn(Optional.of(participant1));
-        given(chatRoomMongoRepository.findById("1번방")).willReturn(
-                Optional.empty());
-
-
-        //when
-        //then
-        try{
-            chatService.getMessages("1번방",LocalDateTime.now().minusDays(1),1L);
-        }catch (Exception e){
-            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
 

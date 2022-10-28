@@ -24,6 +24,7 @@ public class RabbitChatController {
 
     @MessageMapping("chat.enter.{roomId}")
     public void enterMessage(Message message,@DestinationVariable String roomId){
+
         message.updateMessage(message.getSenderName() + "님이 채팅방에 참여하였습니다.");
         message.updateRoomIdAndCreatedAt(roomId);
 

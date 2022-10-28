@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -96,14 +97,13 @@ public class DbConnectionSaveTest {
                 .owner(user)
                 .privateRoom(false)
                 .password("0")
-                .start_date(LocalDateTime.now())
-                .end_date(LocalDateTime.now())
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now())
                 .latitude("a")
                 .longitude("b")
                 .chatRoomStatus(ChatRoomStatus.TRAVEL)
                 .rcate1("abc")
                 .rcate2("cde")
-                .rcate3("ghi")
                 .build();
 
         ChatRoomMySql save = chatRoomMySqlRepository.save(chatRoom);
