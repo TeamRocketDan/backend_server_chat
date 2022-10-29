@@ -14,9 +14,10 @@ import java.time.LocalDate;
 @Builder
 public class ChatRoomDto {
 
+    private String id;
     private String title;
-    private LocalDate start_date;
-    private LocalDate end_date;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private int curParticipant;
     private int maxParticipant;
     private boolean privateRoom;
@@ -32,9 +33,10 @@ public class ChatRoomDto {
 
     public static ChatRoomDto of(ChatRoomMySql chatRoom){
         return ChatRoomDto.builder()
+                .id(chatRoom.getId())
                 .title(chatRoom.getTitle())
-                .start_date(chatRoom.getStartDate())
-                .end_date(chatRoom.getEndDate())
+                .startDate(chatRoom.getStartDate())
+                .endDate(chatRoom.getEndDate())
                 .maxParticipant(chatRoom.getMaxParticipant())
                 .privateRoom(chatRoom.isPrivateRoom())
                 .rcate1(chatRoom.getRcate1())
