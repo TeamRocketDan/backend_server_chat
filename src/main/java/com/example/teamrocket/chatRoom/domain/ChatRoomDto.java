@@ -21,6 +21,9 @@ public class ChatRoomDto {
     private int maxParticipant;
     private boolean privateRoom;
 
+    private String ownerNickName;
+    private String ownerProfileImage;
+
     private String rcate1;
     private String rcate2;
 
@@ -43,5 +46,10 @@ public class ChatRoomDto {
 
     public void setCurParticipant (int curParticipant) {
         this.curParticipant = curParticipant;
+    }
+
+    public void setOwnerInfo(String ownerNickName, String ownerProfileImage){
+        this.ownerNickName = ownerNickName;
+        this.ownerProfileImage = ownerProfileImage;
     }
 }
