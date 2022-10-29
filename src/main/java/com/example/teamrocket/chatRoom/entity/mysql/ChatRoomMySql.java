@@ -9,6 +9,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -42,6 +43,9 @@ public class ChatRoomMySql extends BaseEntity {
     private String latitude;
 
     private LocalDateTime deletedAt;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "chatRoomMySql")
+    @ToString.Exclude
+    private List<ChatRoomParticipant> participants;
 
     public static ChatRoomMySql of(User user, ChatRoomCreateInput input){
         return ChatRoomMySql.builder()
