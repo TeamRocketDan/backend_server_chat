@@ -74,7 +74,7 @@ public class ChatServiceImpl implements ChatService{
         List<ChatRoomDto> contents = new ArrayList<>(chatRooms.getContent().size());
         for(ChatRoomMySql chatRoom:chatRooms.getContent()){
             ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
-            chatRoomDto.setCurParticipant(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom).size());
+            chatRoomDto.setCurParticipant(chatRoom.getParticipants().size());
 
             User owner = chatRoom.getOwner();
             chatRoomDto.setOwnerInfo(owner.getNickname(),owner.getProfileImage());
@@ -90,15 +90,13 @@ public class ChatServiceImpl implements ChatService{
     public ChatRoomDto editRoom(Long userId, String roomId, ChatRoomEditInput param) {
         User user = userRepository.findById(userId).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
-        List<ChatRoomParticipant> participants =
-                chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom);
 
         if (!chatRoom.getOwner().equals(user)) {
             throw new ChatRoomException(NOT_CHAT_ROOM_OWNER);
         }
-
 
         if(param.getStartDate().isBefore(LocalDate.now())){
             throw new ChatRoomException(START_DATE_MUST_BE_AFTER_TODAY);
@@ -108,7 +106,7 @@ public class ChatServiceImpl implements ChatService{
             throw new ChatRoomException(TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE);
         }
 
-        if(param.getMaxParticipant()<participants.size()){
+        if(param.getMaxParticipant()<chatRoom.getParticipants().size()){
             throw new ChatRoomException(MAX_PARTICIPANT_IS_TOO_SMALL);
         }
 
@@ -122,14 +120,13 @@ public class ChatServiceImpl implements ChatService{
     public void deleteRoom(Long userId, String roomId) {
         User user = userRepository.findById(userId).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         if (!chatRoom.getOwner().equals(user)) {
             throw new ChatRoomException(NOT_CHAT_ROOM_OWNER);
         }
-
-        // 이미 제거된 방입니다 추가
 
         chatRoom.delete();
         chatRoomParticipantRepository.deleteAllByChatRoomMySql(chatRoom);
@@ -138,14 +135,13 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public ChatRoomServiceResult enterRoom(String roomId, String password , Long userId) {
-        // 제거된 방에 대한 처리 필요
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
-        List<ChatRoomParticipant> participants =
-                chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom);
+
+        List<ChatRoomParticipant> participants = chatRoom.getParticipants();
 
         if(participants.stream().anyMatch(x->x.getUserId().equals(userId))){
-            throw new ChatRoomException(ALREADY_PARTICIPATE);
+            return new ChatRoomServiceResult(roomId,userId);
         } else if(participants.size() < chatRoom.getMaxParticipant()){
 
             if(!chatRoom.getPassword().equals(password)){
@@ -165,7 +161,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public ChatRoomServiceResult leaveRoom(String roomId, Long userId) {
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         ChatRoomParticipant participant =
@@ -178,7 +174,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public MessagePagingResponse<Message> getMessages(String roomId, Long userId,LocalDate date,Integer page, Integer size) {
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         ChatRoomParticipant participant = chatRoomParticipantRepository
@@ -206,7 +202,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public MessagePagingResponse<Message> getMessagesMongo(String roomId, Long userId, Integer page, Integer size) {
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         ChatRoomParticipant participant = chatRoomParticipantRepository
@@ -260,7 +256,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public ChatRoomParticipantDto chatEnd(String roomId, Long userId) {
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findById(roomId).orElseThrow(
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         ChatRoomParticipant participant = chatRoomParticipantRepository
