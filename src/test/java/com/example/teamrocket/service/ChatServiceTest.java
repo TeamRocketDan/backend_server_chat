@@ -107,9 +107,6 @@ class ChatServiceTest {
         } catch (UserException e){
             assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
         }
-
-
-
     }
 
     @Test
@@ -182,8 +179,6 @@ class ChatServiceTest {
         assertEquals(0,results.getContent().get(0).getCurParticipant());
         assertEquals("프로필 이미지 경로1",results.getContent().get(0).getOwnerProfileImage());
         assertEquals("닉네임1",results.getContent().get(0).getOwnerNickName());
-
-
 
         assertEquals("채팅방2",results.getContent().get(1).getTitle());
         assertEquals(1,results.getContent().get(1).getCurParticipant());
