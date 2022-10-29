@@ -52,7 +52,8 @@ public class RedisTemplateRepository {
         return result;
     }
     public void updateExpireTime(String roomId, ChatRoomEditInput param) {
-        Duration between = Duration.between(param.getStartDate(), param.getEndDate().plusDays(1));
+        Duration between = Duration.between(param.getStartDate().atStartOfDay(),
+                param.getEndDate().plusDays(1).atStartOfDay());
         redisTemplate.expire(roomId,between.getSeconds(),TimeUnit.SECONDS);
     }
 
