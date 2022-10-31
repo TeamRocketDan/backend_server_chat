@@ -38,22 +38,23 @@ public class RedisTemplateRepository {
         String todayVerify= now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String yesterdayVerify = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        ScanOptions build = ScanOptions.scanOptions().match("*").build();
+        ScanOptions build = ScanOptions.scanOptions().match("*#*").build();
         Cursor<String> scan = redisTemplate.scan(build);
         Set<String> result = new HashSet<>();
 
         while (scan.hasNext()){
             String currentString = scan.next();
             String[] inputs = currentString.split("#");
-            if(inputs[1].equals(todayVerify) || inputs[1].equals(yesterdayVerify)){continue;}
+            if(inputs.length < 2 || inputs[1].equals(todayVerify) || inputs[1].equals(yesterdayVerify)){continue;}
             result.add(currentString);
         }
 
         return result;
     }
     public void updateExpireTime(String roomId, ChatRoomEditInput param) {
-        Duration between = Duration.between(param.getStartDate().atStartOfDay(),
-                param.getEndDate().plusDays(1).atStartOfDay());
+        LocalDateTime startDate = param.getStartDate().atStartOfDay();
+        LocalDateTime endDate = param.getEndDate().atStartOfDay();
+        Duration between = Duration.between(startDate, endDate);
         redisTemplate.expire(roomId,between.getSeconds(),TimeUnit.SECONDS);
     }
 

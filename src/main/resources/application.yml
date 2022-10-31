@@ -17,7 +17,7 @@ spring:
         enabled: false
     mongodb:
       uri: ${MONGO_HOST}
-      #database: ${MONGO_NAME}
+      database: ${MONGO_NAME}
 
   jpa:
 #    hibernate:
@@ -47,3 +47,6 @@ spring:
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: debug
+
+jwt:
+  secret: ${JWT_SECRET}
