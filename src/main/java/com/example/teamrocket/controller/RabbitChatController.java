@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class RabbitChatController {
     private final String CHAT_QUEUE_NAME = "chat.queue";
     private final RabbitTemplate template;
@@ -24,17 +25,14 @@ public class RabbitChatController {
 
     @MessageMapping("chat.enter.{roomId}")
     public void enterMessage(Message message,@DestinationVariable String roomId){
-
         message.updateMessage(message.getSenderName() + "님이 채팅방에 참여하였습니다.");
         message.updateRoomIdAndCreatedAt(roomId);
-
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
 
     @MessageMapping("chat.message.{roomId}")
     public void send(Message message, @DestinationVariable String roomId){
         message.updateRoomIdAndCreatedAt(roomId);
-
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
 

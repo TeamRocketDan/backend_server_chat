@@ -52,8 +52,8 @@ public class RedisTest {
                 .build();
 
         ChatRoomEditInput build1 = ChatRoomEditInput.builder()
-                .start_date(LocalDateTime.now().plusDays(7))
-                .end_date(LocalDateTime.now().plusDays(10))
+                .startDate(LocalDate.now().plusDays(7))
+                .endDate(LocalDate.now().plusDays(10))
                 .build();
         redisTemplateRepository.saveToLeft(roomId,build);
         redisTemplateRepository.updateExpireTime(roomId,build1);
