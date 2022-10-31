@@ -183,18 +183,14 @@ public class ChatServiceImpl implements ChatService{
 
         MessagePagingResponse<Message> response = new MessagePagingResponse<>();
         response.setLastDay(leftTime.toLocalDate().isEqual(date));
-        LocalDate targetDate = LocalDate.now();
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        String targetDateString = targetDate.format(formatter);
+        String targetDateString = date.format(formatter);
         String dayOfMessageId = chatRoom.getId()+"#"+targetDateString;
 
         List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page,size);
         messages = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime)).collect(Collectors.toList());
         response.setFromList(messages,size,date);
-        if(leftTime.toLocalDate().equals(LocalDate.now())){
-            response.setLastDay(true);
-        }
-
         return response;
     }
 
