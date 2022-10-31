@@ -14,7 +14,7 @@ public enum ChatRoomErrorCode {
     MAX_PARTICIPANT_IS_TOO_SMALL(HttpStatus.BAD_REQUEST,"현재 채팅방 인원보다 채팅방 인원을 적게 수정할 수 없습니다."),
     START_DATE_MUST_BE_AFTER_TODAY(HttpStatus.BAD_REQUEST,"여행 시작날짜는 현재 날짜 이후여야합니다."),
     NOT_CHAT_ROOM_OWNER(HttpStatus.BAD_REQUEST,"방장이 아닙니다."),
-    CHAT_ROOM_NOT_FOUND(HttpStatus.BAD_REQUEST,"방을 찾을 수 없습니다."),
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND,"방을 찾을 수 없습니다."),
     TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE(HttpStatus.BAD_REQUEST,"여행 시작 날짜는 여행 끝 날짜 이전이여야 합니다.");
 
     private final HttpStatus httpStatus;
