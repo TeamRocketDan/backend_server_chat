@@ -107,9 +107,6 @@ class ChatServiceTest {
         } catch (UserException e){
             assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
         }
-
-
-
     }
 
     @Test
@@ -144,12 +141,17 @@ class ChatServiceTest {
     void listRoomSuccess() {
         //given
         List<ChatRoomMySql> roomLists = new ArrayList<>();
+
+        User user1 = User.builder().profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+        User user2 = User.builder().profileImage("프로필 이미지 경로2").nickname("닉네임2").build();
+        User user3 = User.builder().profileImage("프로필 이미지 경로3").nickname("닉네임3").build();
+
         ChatRoomMySql room1 = ChatRoomMySql.builder()
-                .title("채팅방1").rcate1("서울시").build();
+                .title("채팅방1").rcate1("서울시").owner(user1).build();
         ChatRoomMySql room2 = ChatRoomMySql.builder()
-                .title("채팅방2").rcate1("서울시").build();
+                .title("채팅방2").rcate1("서울시").owner(user2).build();
         ChatRoomMySql room3 = ChatRoomMySql.builder()
-                .title("채팅방3").rcate1("서울시").build();
+                .title("채팅방3").rcate1("서울시").owner(user3).build();
 
         roomLists.add(room1);
         roomLists.add(room2);
@@ -172,11 +174,16 @@ class ChatServiceTest {
         var results = chatService.listRoom("서울시","동작구",pageRequest);
         //then
         assertEquals(3,results.getSize());
+
         assertEquals("채팅방1",results.getContent().get(0).getTitle());
         assertEquals(0,results.getContent().get(0).getCurParticipant());
+        assertEquals("프로필 이미지 경로1",results.getContent().get(0).getOwnerProfileImage());
+        assertEquals("닉네임1",results.getContent().get(0).getOwnerNickName());
+
         assertEquals("채팅방2",results.getContent().get(1).getTitle());
         assertEquals(1,results.getContent().get(1).getCurParticipant());
-
+        assertEquals("프로필 이미지 경로2",results.getContent().get(1).getOwnerProfileImage());
+        assertEquals("닉네임2",results.getContent().get(1).getOwnerNickName());
     }
 
     @Test

@@ -75,6 +75,9 @@ public class ChatServiceImpl implements ChatService{
         for(ChatRoomMySql chatRoom:chatRooms.getContent()){
             ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
             chatRoomDto.setCurParticipant(chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom).size());
+
+            User owner = chatRoom.getOwner();
+            chatRoomDto.setOwnerInfo(owner.getNickname(),owner.getProfileImage());
             contents.add(chatRoomDto);
         }
 
