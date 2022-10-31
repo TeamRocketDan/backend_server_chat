@@ -45,6 +45,7 @@ public class MessagePagingResponse<Message> {
 
     public void setFromList(List<Message> list, Integer size,LocalDate targetDay){
         this.targetDay = targetDay;
+        this.size = size;
         this.content = list;
         this.lastPage = list.size() != size;
 
