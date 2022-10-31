@@ -7,7 +7,6 @@ import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
-import com.example.teamrocket.chatRoom.repository.mongo.DayOfMessageRepository;
 import com.example.teamrocket.chatRoom.repository.mongo.MessageRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomParticipantRepository;
@@ -45,7 +44,6 @@ public class ChatServiceImpl implements ChatService{
     private final ChatRoomMongoRepository chatRoomMongoRepository;
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
     private final RedisTemplateRepository redisTemplateRepository;
-    private final DayOfMessageRepository dayOfMessageRepository;
     private final MessageRepository messageRepository;
 
     @Override
@@ -81,7 +79,7 @@ public class ChatServiceImpl implements ChatService{
             contents.add(chatRoomDto);
         }
 
-        PagingResponse result = PagingResponse.fromEntity(chatRooms);
+        PagingResponse<ChatRoomDto> result = PagingResponse.fromEntity(chatRooms);
         result.setContent(contents);
         return result;
     }
@@ -138,15 +136,15 @@ public class ChatServiceImpl implements ChatService{
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
+        if(!chatRoom.getPassword().equals(password)){
+            throw new ChatRoomException(PASSWORD_NOT_MATCH);
+        }
+
         List<ChatRoomParticipant> participants = chatRoom.getParticipants();
 
         if(participants.stream().anyMatch(x->x.getUserId().equals(userId))){
             return new ChatRoomServiceResult(roomId,userId);
         } else if(participants.size() < chatRoom.getMaxParticipant()){
-
-            if(!chatRoom.getPassword().equals(password)){
-                throw new ChatRoomException(PASSWORD_NOT_MATCH);
-            }
 
             ChatRoomParticipant participant = ChatRoomParticipant.builder()
                     .chatRoomMySql(chatRoom)
@@ -202,15 +200,17 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public MessagePagingResponse<Message> getMessagesMongo(String roomId, Long userId, Integer page, Integer size) {
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
+        ChatRoomMySql chatRoomMySql = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         ChatRoomParticipant participant = chatRoomParticipantRepository
-                .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
+                .findByChatRoomMySqlAndUserId(chatRoomMySql, userId).orElseThrow(
                         () -> new ChatRoomException(NOT_PARTICIPATED_USER));
 
-        var leftTime = participant.getLeftAt();
+        ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
+                () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
+        LocalDateTime leftTime = participant.getLeftAt();
 
         MessagePagingResponse<Message> response = new MessagePagingResponse<>();
         LocalDate targetDate = LocalDate.now().minusDays(1);
@@ -225,8 +225,9 @@ public class ChatServiceImpl implements ChatService{
             }
 
             String targetDateString = targetDate.format(formatter);
-            String dayOfMessageId = chatRoom.getId()+"#"+targetDateString;
-            Optional<DayOfMessages> dayOfMessages = dayOfMessageRepository.findById(dayOfMessageId);
+            String dayOfMessageId = chatRoom.getChatRoomId()+"#"+targetDateString;
+            Optional<DayOfMessages> dayOfMessages = chatRoom.getDayOfMessages()
+                                    .stream().filter(x->x.getId().equals(dayOfMessageId)).findFirst();
 
             if(dayOfMessages.isEmpty() && response.isLastDay()){
                 break;
