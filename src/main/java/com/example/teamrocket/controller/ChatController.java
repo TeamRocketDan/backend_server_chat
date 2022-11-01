@@ -26,83 +26,66 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/room")
-    public ResponseEntity<ApiResult<ChatRoomDto>> createRoom(@RequestBody ChatRoomCreateInput param,
-                                                            @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-//                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        ChatRoomDto chatRoom = chatService.createRoom(userId,param);
+    public ResponseEntity<ApiResult<ChatRoomDto>> createRoom(@RequestBody ChatRoomCreateInput param){
+        ChatRoomDto chatRoom = chatService.createRoom(param);
 
         return ResponseEntity.ok(success(chatRoom));
     }
 
     @GetMapping("/room-list")
-    public ResponseEntity<PagingResponse<ChatRoomDto>> roomList(@RequestParam Integer page, @RequestParam Integer size,
+    public ResponseEntity<ApiResult<PagingResponse<ChatRoomDto>>> roomList(@RequestParam Integer page, @RequestParam Integer size,
                                                         @RequestParam String rcate1, @RequestParam(required = false) String rcate2){
         PageRequest pageRequest = PageRequest.of(page,size);
         PagingResponse<ChatRoomDto> results = chatService.listRoom(rcate1,rcate2,pageRequest);
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(success(results));
     }
 
     @PatchMapping("/room/{roomId}")
-    public ResponseEntity<ApiResult<ChatRoomDto>> editRoom(@PathVariable String roomId, @RequestBody ChatRoomEditInput param,
-                                                        @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        ChatRoomDto chatRoom = chatService.editRoom(userId,roomId,param);
+    public ResponseEntity<ApiResult<ChatRoomDto>> editRoom(@PathVariable String roomId, @RequestBody ChatRoomEditInput param){
+        ChatRoomDto chatRoom = chatService.editRoom(roomId,param);
 
         return ResponseEntity.ok(success(chatRoom));
     }
 
     @DeleteMapping("/room/{roomId}")
-    public ResponseEntity<ApiResult<?>> deleteRoom(@PathVariable String roomId
-            , @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        chatService.deleteRoom(userId,roomId);
+    public ResponseEntity<ApiResult<?>> deleteRoom(@PathVariable String roomId){
+        chatService.deleteRoom(roomId);
 
         return ResponseEntity.ok(success(null));
     }
 
     @PatchMapping("/room-enter/{roomId}")
-    public ResponseEntity<ApiResult<ChatRoomServiceResult>> enterRoom(@PathVariable String roomId, @RequestParam String password,
-                                                   @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        ChatRoomServiceResult result = chatService.enterRoom(roomId, password ,userId);
+    public ResponseEntity<ApiResult<ChatRoomServiceResult>> enterRoom(@PathVariable String roomId, @RequestParam String password){
+        ChatRoomServiceResult result = chatService.enterRoom(roomId, password);
         return ResponseEntity.ok(success(result));
     }
 
     @PatchMapping("/room-leave/{roomId}")
-    public ResponseEntity<ApiResult<ChatRoomServiceResult>> leaveRoom(@PathVariable String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        ChatRoomServiceResult result = chatService.leaveRoom(roomId, userId);
+    public ResponseEntity<ApiResult<ChatRoomServiceResult>> leaveRoom(@PathVariable String roomId){
+        ChatRoomServiceResult result = chatService.leaveRoom(roomId);
         return ResponseEntity.ok(success(result));
     }
 
     @GetMapping("/message/{roomId}")
     public ResponseEntity<ApiResult<MessagePagingResponse<Message>>> getMessages(@PathVariable String roomId,
                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
-                         @RequestParam Integer page, @RequestParam Integer size, @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        MessagePagingResponse<Message> messages = chatService.getMessages(roomId,userId,date,page,size);
+                         @RequestParam Integer page, @RequestParam Integer size){
+
+        MessagePagingResponse<Message> messages = chatService.getMessages(roomId,date,page,size);
         return ResponseEntity.ok(success(messages));
     }
 
     @GetMapping("/message/{roomId}/mongo")
     public ResponseEntity<ApiResult<MessagePagingResponse<Message>>> getMessagesMongo(@PathVariable String roomId
-            , @RequestParam Integer page, @RequestParam Integer size,@RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-        //                userId= provider.from(token); -> token에서 유저 정보 얻는 method 필요
-        MessagePagingResponse<Message> messages = chatService.getMessagesMongo(roomId,userId,page,size);
+            , @RequestParam Integer page, @RequestParam Integer size){
+
+        MessagePagingResponse<Message> messages = chatService.getMessagesMongo(roomId,page,size);
         return ResponseEntity.ok(success(messages));
     }
     @PatchMapping("/chat-end/{roomId}")
-    public ResponseEntity<ApiResult> chatEnd(@PathVariable String roomId, @RequestHeader(name = "X_AUTH_TOKEN") String token){
-        Long userId=0L;
-        //                userId= provider.from(token);
-        ChatRoomParticipantDto participantDto = chatService.chatEnd(roomId, userId);
+    public ResponseEntity<ApiResult> chatEnd(@PathVariable String roomId){
+
+        ChatRoomParticipantDto participantDto = chatService.chatEnd(roomId);
         return ResponseEntity.ok(success(participantDto));
 
     }
