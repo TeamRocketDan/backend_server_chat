@@ -11,21 +11,21 @@ import java.time.LocalDate;
 
 @Service
 public interface ChatService {
-    ChatRoomDto createRoom(Long userId, ChatRoomCreateInput param);
+    ChatRoomDto createRoom(ChatRoomCreateInput param);
 
     PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, PageRequest pageRequest);
 
-    ChatRoomDto editRoom(Long userId, String roomId, ChatRoomEditInput param);
+    ChatRoomDto editRoom(String roomId, ChatRoomEditInput param);
 
-    void deleteRoom(Long userId, String roomId);
+    void deleteRoom(String roomId);
 
-    ChatRoomServiceResult enterRoom(String roomId, String password, Long userId);
+    ChatRoomServiceResult enterRoom(String roomId, String password);
 
-    ChatRoomServiceResult leaveRoom(String roomId, Long userId);
+    ChatRoomServiceResult leaveRoom(String roomId);
 
-    MessagePagingResponse<Message> getMessages(String roomId, Long userId, LocalDate date, Integer page, Integer size);
+    MessagePagingResponse<Message> getMessages(String roomId, LocalDate date, Integer page, Integer size);
 
-    MessagePagingResponse<Message> getMessagesMongo(String roomId, Long userId,Integer page, Integer size);
+    MessagePagingResponse<Message> getMessagesMongo(String roomId,Integer page, Integer size);
 
-    ChatRoomParticipantDto chatEnd(String roomId, Long userId);
+    ChatRoomParticipantDto chatEnd(String roomId);
 }

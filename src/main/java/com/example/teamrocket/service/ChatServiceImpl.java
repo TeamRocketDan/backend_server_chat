@@ -15,6 +15,7 @@ import com.example.teamrocket.error.exception.ChatRoomException;
 import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
+import com.example.teamrocket.utils.CommonRequestContext;
 import com.example.teamrocket.utils.MessagePagingResponse;
 import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +46,11 @@ public class ChatServiceImpl implements ChatService{
     private final ChatRoomParticipantRepository chatRoomParticipantRepository;
     private final RedisTemplateRepository redisTemplateRepository;
     private final MessageRepository messageRepository;
+    private final CommonRequestContext commonRequestContext;
 
     @Override
-    public ChatRoomDto createRoom(Long userId, ChatRoomCreateInput param) {
-        User user = userRepository.findById(userId).orElseThrow(
+    public ChatRoomDto createRoom(ChatRoomCreateInput param) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
 
         if(param.getEndDate().isBefore(param.getStartDate())){
@@ -85,8 +87,8 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public ChatRoomDto editRoom(Long userId, String roomId, ChatRoomEditInput param) {
-        User user = userRepository.findById(userId).orElseThrow(
+    public ChatRoomDto editRoom(String roomId, ChatRoomEditInput param) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
 
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
@@ -115,8 +117,8 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public void deleteRoom(Long userId, String roomId) {
-        User user = userRepository.findById(userId).orElseThrow(
+    public void deleteRoom(String roomId) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
 
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
@@ -132,7 +134,11 @@ public class ChatServiceImpl implements ChatService{
 
 
     @Override
-    public ChatRoomServiceResult enterRoom(String roomId, String password , Long userId) {
+    public ChatRoomServiceResult enterRoom(String roomId, String password) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+        Long userId = user.getId();
+
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
@@ -158,7 +164,11 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public ChatRoomServiceResult leaveRoom(String roomId, Long userId) {
+    public ChatRoomServiceResult leaveRoom(String roomId) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+        Long userId = user.getId();
+
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
@@ -171,7 +181,11 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public MessagePagingResponse<Message> getMessages(String roomId, Long userId,LocalDate date,Integer page, Integer size) {
+    public MessagePagingResponse<Message> getMessages(String roomId, LocalDate date,Integer page, Integer size) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+        Long userId = user.getId();
+
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
@@ -195,7 +209,11 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public MessagePagingResponse<Message> getMessagesMongo(String roomId, Long userId, Integer page, Integer size) {
+    public MessagePagingResponse<Message> getMessagesMongo(String roomId, Integer page, Integer size) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+        Long userId = user.getId();
+
         ChatRoomMySql chatRoomMySql = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
@@ -252,7 +270,11 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public ChatRoomParticipantDto chatEnd(String roomId, Long userId) {
+    public ChatRoomParticipantDto chatEnd(String roomId) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+        Long userId = user.getId();
+
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
