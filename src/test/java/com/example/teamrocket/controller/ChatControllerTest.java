@@ -3,6 +3,7 @@ package com.example.teamrocket.controller;
 import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.chatRoom.domain.ChatRoomDto;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
+import com.example.teamrocket.chatRoom.domain.ChatRoomServiceResult;
 import com.example.teamrocket.error.exception.ChatRoomException;
 import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.service.ChatService;
@@ -371,6 +372,130 @@ public class ChatControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.result").isEmpty())
                 .andExpect(jsonPath("$.errorMessage").value(NOT_CHAT_ROOM_OWNER.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void enterRoomSuccess() throws Exception{
+
+        given(chatService.enterRoom(eq("1번방"),eq("1234"))).willReturn(
+                new ChatRoomServiceResult("1번방",1L)
+        );
+
+        mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.chatRoomId").value("1번방"))
+                .andExpect(jsonPath("$.result.userId").value(1L))
+                .andDo(print());
+    }
+
+    @Test
+    void enterRoomFail_NoUser() throws Exception{
+        doThrow(new UserException(USER_NOT_FOUND))
+                .when(chatService).enterRoom(eq("1번방"),any());
+
+        mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void enterRoomFail_NoChatRoom() throws Exception{
+        doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
+                .when(chatService).enterRoom(eq("1번방"),any());
+
+        mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(CHAT_ROOM_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void enterRoomFail_PasswordNotMatch() throws Exception{
+        doThrow(new ChatRoomException(PASSWORD_NOT_MATCH))
+                .when(chatService).enterRoom(eq("1번방"),any());
+
+        mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(PASSWORD_NOT_MATCH.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void enterRoomFail_ExceedMaxParticipants() throws Exception{
+        doThrow(new ChatRoomException(EXCEED_MAX_PARTICIPANTS))
+                .when(chatService).enterRoom(eq("1번방"),any());
+
+        mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password="))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(EXCEED_MAX_PARTICIPANTS.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void leaveRoomSuccess() throws Exception{
+
+        given(chatService.leaveRoom(eq("1번방"))).willReturn(
+                new ChatRoomServiceResult("1번방",1L)
+        );
+
+        mockMvc.perform(patch("/api/v1/chat/room-leave/1번방"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.chatRoomId").value("1번방"))
+                .andExpect(jsonPath("$.result.userId").value(1L))
+                .andDo(print());
+    }
+
+    @Test
+    void leaveRoomFail_NoUser() throws Exception{
+
+        doThrow(new UserException(USER_NOT_FOUND))
+                .when(chatService).leaveRoom(eq("1번방"));
+
+        mockMvc.perform(patch("/api/v1/chat/room-leave/1번방"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void leaveRoomFail_NoChatRoom() throws Exception{
+
+        doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
+                .when(chatService).leaveRoom(eq("1번방"));
+
+        mockMvc.perform(patch("/api/v1/chat/room-leave/1번방"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(CHAT_ROOM_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void leaveRoomFail_NotParticipatedUser() throws Exception{
+
+        doThrow(new ChatRoomException(NOT_PARTICIPATED_USER))
+                .when(chatService).leaveRoom(eq("1번방"));
+
+        mockMvc.perform(patch("/api/v1/chat/room-leave/1번방"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(NOT_PARTICIPATED_USER.getMessage()))
                 .andDo(print());
     }
 }
