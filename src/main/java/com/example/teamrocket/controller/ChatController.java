@@ -55,7 +55,7 @@ public class ChatController {
     }
 
     @PatchMapping("/room-enter/{roomId}")
-    public ResponseEntity<ApiResult<ChatRoomServiceResult>> enterRoom(@PathVariable String roomId, @RequestParam String password){
+    public ResponseEntity<ApiResult<ChatRoomServiceResult>> enterRoom(@PathVariable String roomId, @RequestParam(required = false) String password){
         ChatRoomServiceResult result = chatService.enterRoom(roomId, password);
         return ResponseEntity.ok(success(result));
     }
@@ -75,7 +75,7 @@ public class ChatController {
         return ResponseEntity.ok(success(messages));
     }
 
-    @GetMapping("/message/{roomId}/mongo")
+    @GetMapping("/message/mongo/{roomId}")
     public ResponseEntity<ApiResult<MessagePagingResponse<Message>>> getMessagesMongo(@PathVariable String roomId
             , @RequestParam Integer page, @RequestParam Integer size){
 
