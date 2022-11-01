@@ -28,6 +28,7 @@ import static com.example.teamrocket.error.type.ChatRoomErrorCode.*;
 import static com.example.teamrocket.error.type.UserErrorCode.USER_NOT_FOUND;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -329,4 +330,47 @@ public class ChatControllerTest {
                 .andDo(print());
     }
 
+    @Test
+    void deleteRoomSuccess() throws Exception{
+        doNothing().when(chatService).deleteRoom(eq("1번방"));
+
+        mockMvc.perform(delete("/api/v1/chat/room/1번방"))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+    @Test
+    void deleteRoomFail_NoUser() throws Exception{
+        doThrow(new UserException(USER_NOT_FOUND))
+                .when(chatService).deleteRoom(eq("1번방"));
+
+        mockMvc.perform(delete("/api/v1/chat/room/1번방"))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void deleteRoomSuccess_NoChatRoom() throws Exception{
+        doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
+                .when(chatService).deleteRoom(eq("1번방"));
+
+        mockMvc.perform(delete("/api/v1/chat/room/1번방"))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(CHAT_ROOM_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
+    void deleteRoomSuccess_NotOwnerUser() throws Exception{
+        doThrow(new ChatRoomException(NOT_CHAT_ROOM_OWNER))
+                .when(chatService).deleteRoom(eq("1번방"));
+
+        mockMvc.perform(delete("/api/v1/chat/room/1번방"))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(NOT_CHAT_ROOM_OWNER.getMessage()))
+                .andDo(print());
+    }
 }
