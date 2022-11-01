@@ -142,7 +142,7 @@ public class ChatServiceImpl implements ChatService{
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        if(!chatRoom.getPassword().equals(password)){
+        if(chatRoom.isPrivateRoom() && !chatRoom.getPassword().equals(password)){
             throw new ChatRoomException(PASSWORD_NOT_MATCH);
         }
 
