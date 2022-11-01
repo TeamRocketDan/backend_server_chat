@@ -477,7 +477,7 @@ class ChatServiceTest {
         given(commonRequestContext.getMemberUuId()).willReturn("uuid");
         given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
 
-        ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").maxParticipant(3)
+        ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").privateRoom(true).maxParticipant(3)
                 .password("1234").build();
 
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
