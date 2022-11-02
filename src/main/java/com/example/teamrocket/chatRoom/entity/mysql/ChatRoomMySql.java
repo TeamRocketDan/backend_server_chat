@@ -44,7 +44,6 @@ public class ChatRoomMySql extends BaseEntity {
 
     private LocalDateTime deletedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "chatRoomMySql")
-    @ToString.Exclude
     private List<ChatRoomParticipant> participants;
 
     public static ChatRoomMySql of(User user, ChatRoomCreateInput input){
