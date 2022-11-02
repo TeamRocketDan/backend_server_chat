@@ -3,10 +3,7 @@ package com.example.teamrocket.chatRoom.domain;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
-import javax.validation.constraints.Future;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Getter
@@ -16,6 +13,7 @@ import java.time.LocalDate;
 @Builder
 public class ChatRoomEditInput {
 
+    @Size(max = 50)
     @NotBlank
     private String title;
     @Future(message = "여행 시작날짜는 현재 이후여야합니다.")

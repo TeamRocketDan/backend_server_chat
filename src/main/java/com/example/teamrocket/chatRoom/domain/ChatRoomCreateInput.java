@@ -14,8 +14,9 @@ import java.time.LocalDate;
 public class ChatRoomCreateInput {
 
     @NotBlank(message = "제목은 필수 입력값입니다.")
+    @Size(max = 50)
     private String title;
-    @Future(message = "여행 시작날짜는 현재 이후여야합니다.")
+    @FutureOrPresent(message = "여행 시작날짜는 오늘부터입니다.")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private LocalDate startDate;
     @Future(message = "여행 끝날짜는 현재 이후여야합니다.")
@@ -28,8 +29,10 @@ public class ChatRoomCreateInput {
     private boolean privateRoom;
     private String password;
 
+    @Size(max = 20)
     @NotNull
     private String rcate1;
+    @Size(max = 20)
     @NotNull
     private String rcate2;
 

@@ -12,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 
 import static com.example.teamrocket.utils.ApiUtils.success;
@@ -25,7 +26,7 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/room")
-    public ResponseEntity<ApiResult<ChatRoomDto>> createRoom(@RequestBody ChatRoomCreateInput param){
+    public ResponseEntity<ApiResult<ChatRoomDto>> createRoom(@Valid @RequestBody ChatRoomCreateInput param){
         ChatRoomDto chatRoom = chatService.createRoom(param);
 
         return ResponseEntity.ok(success(chatRoom));
@@ -33,14 +34,14 @@ public class ChatController {
 
     @GetMapping("/room-list")
     public ResponseEntity<ApiResult<PagingResponse<ChatRoomDto>>> roomList(@RequestParam Integer page, @RequestParam Integer size,
-                                                        @RequestParam String rcate1, @RequestParam(required = false) String rcate2){
+                                                        @RequestParam String rcate1, @RequestParam String rcate2){
         PageRequest pageRequest = PageRequest.of(page,size);
         PagingResponse<ChatRoomDto> results = chatService.listRoom(rcate1,rcate2,pageRequest);
         return ResponseEntity.ok(success(results));
     }
 
     @PatchMapping("/room/{roomId}")
-    public ResponseEntity<ApiResult<ChatRoomDto>> editRoom(@PathVariable String roomId, @RequestBody ChatRoomEditInput param){
+    public ResponseEntity<ApiResult<ChatRoomDto>> editRoom(@PathVariable String roomId, @Valid @RequestBody ChatRoomEditInput param){
         ChatRoomDto chatRoom = chatService.editRoom(roomId,param);
 
         return ResponseEntity.ok(success(chatRoom));
