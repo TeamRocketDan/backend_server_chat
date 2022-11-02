@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MessagePagingResponse<Message> {
+public class MessagePagingResponse<MessageDto> {
 
     private boolean lastDay;
     private LocalDate targetDay;
@@ -24,9 +24,9 @@ public class MessagePagingResponse<Message> {
     private long targetDayTotalElements;
     private int size;
     private int targetDayCurrentPage;
-    private List<Message> content;
+    private List<MessageDto> content;
 
-    public void setFromPage(Page<Message> page,LocalDate targetDay) {
+    public void setFromPage(Page<MessageDto> page,LocalDate targetDay) {
 
         this.targetDay = targetDay;
 
@@ -43,7 +43,7 @@ public class MessagePagingResponse<Message> {
         this.lastDay = isLastDay;
     }
 
-    public void setFromList(List<Message> list, Integer size,LocalDate targetDay){
+    public void setFromList(List<MessageDto> list, Integer size,LocalDate targetDay){
         this.targetDay = targetDay;
         this.size = size;
         this.content = list;

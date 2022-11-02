@@ -1,7 +1,6 @@
 package com.example.teamrocket.controller;
 
 import com.example.teamrocket.chatRoom.domain.*;
-import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.service.ChatService;
 import com.example.teamrocket.utils.ApiUtils.ApiResult;
 import com.example.teamrocket.utils.MessagePagingResponse;
@@ -67,19 +66,19 @@ public class ChatController {
     }
 
     @GetMapping("/message/{roomId}")
-    public ResponseEntity<ApiResult<MessagePagingResponse<Message>>> getMessages(@PathVariable String roomId,
+    public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessages(@PathVariable String roomId,
                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
                          @RequestParam Integer page, @RequestParam Integer size){
 
-        MessagePagingResponse<Message> messages = chatService.getMessages(roomId,date,page,size);
+        MessagePagingResponse<MessageDto> messages = chatService.getMessages(roomId,date,page,size);
         return ResponseEntity.ok(success(messages));
     }
 
     @GetMapping("/message/mongo/{roomId}")
-    public ResponseEntity<ApiResult<MessagePagingResponse<Message>>> getMessagesMongo(@PathVariable String roomId
+    public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessagesMongo(@PathVariable String roomId
             , @RequestParam Integer page, @RequestParam Integer size){
 
-        MessagePagingResponse<Message> messages = chatService.getMessagesMongo(roomId,page,size);
+        MessagePagingResponse<MessageDto> messages = chatService.getMessagesMongo(roomId,page,size);
         return ResponseEntity.ok(success(messages));
     }
     @PatchMapping("/chat-end/{roomId}")

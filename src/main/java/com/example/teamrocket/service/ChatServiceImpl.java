@@ -181,7 +181,7 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public MessagePagingResponse<Message> getMessages(String roomId, LocalDate date,Integer page, Integer size) {
+    public MessagePagingResponse<MessageDto> getMessages(String roomId, LocalDate date,Integer page, Integer size) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
         Long userId = user.getId();
@@ -195,7 +195,7 @@ public class ChatServiceImpl implements ChatService{
 
         var leftTime = participant.getLeftAt();
 
-        MessagePagingResponse<Message> response = new MessagePagingResponse<>();
+        MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
         response.setLastDay(leftTime.toLocalDate().isEqual(date));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -203,13 +203,14 @@ public class ChatServiceImpl implements ChatService{
         String dayOfMessageId = chatRoom.getId()+"#"+targetDateString;
 
         List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page,size);
-        messages = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime)).collect(Collectors.toList());
-        response.setFromList(messages,size,date);
+        List<MessageDto>messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime))
+                .map(MessageDto::of).collect(Collectors.toList());
+        response.setFromList(messageDtos,size,date);
         return response;
     }
 
     @Override
-    public MessagePagingResponse<Message> getMessagesMongo(String roomId, Integer page, Integer size) {
+    public MessagePagingResponse<MessageDto> getMessagesMongo(String roomId, Integer page, Integer size) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
         Long userId = user.getId();
@@ -226,7 +227,7 @@ public class ChatServiceImpl implements ChatService{
 
         LocalDateTime leftTime = participant.getLeftAt();
 
-        MessagePagingResponse<Message> response = new MessagePagingResponse<>();
+        MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
         LocalDate targetDate = LocalDate.now().minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         int pastPage = 0;
@@ -264,7 +265,8 @@ public class ChatServiceImpl implements ChatService{
 
         PageRequest pageRequest = PageRequest.of(page-pastPage,size);
         Page<Message> messagePage= messageRepository.findAllByRoomId(roomId, pageRequest);
-        response.setFromPage(messagePage,targetDate);
+        Page<MessageDto> messageDtoPage = messagePage.map(MessageDto::of);
+        response.setFromPage(messageDtoPage,targetDate);
 
         return response;
     }

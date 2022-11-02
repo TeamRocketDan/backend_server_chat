@@ -1,7 +1,6 @@
 package com.example.teamrocket.service;
 
 import com.example.teamrocket.chatRoom.domain.*;
-import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.utils.MessagePagingResponse;
 import com.example.teamrocket.utils.PagingResponse;
 import org.springframework.data.domain.PageRequest;
@@ -23,9 +22,9 @@ public interface ChatService {
 
     ChatRoomServiceResult leaveRoom(String roomId);
 
-    MessagePagingResponse<Message> getMessages(String roomId, LocalDate date, Integer page, Integer size);
+    MessagePagingResponse<MessageDto> getMessages(String roomId, LocalDate date, Integer page, Integer size);
 
-    MessagePagingResponse<Message> getMessagesMongo(String roomId,Integer page, Integer size);
+    MessagePagingResponse<MessageDto> getMessagesMongo(String roomId,Integer page, Integer size);
 
     ChatRoomParticipantDto chatEnd(String roomId);
 }
