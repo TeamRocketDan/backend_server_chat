@@ -86,18 +86,23 @@ class ChatServiceTest {
         given(commonRequestContext.getMemberUuId()).willReturn("uuid");
         given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
 
-        ArgumentCaptor<ChatRoomMySql> captor = ArgumentCaptor.forClass(ChatRoomMySql.class);
+        ArgumentCaptor<ChatRoomMySql> roomCaptor = ArgumentCaptor.forClass(ChatRoomMySql.class);
+        ArgumentCaptor<ChatRoomParticipant> participantCaptor = ArgumentCaptor.forClass(ChatRoomParticipant.class);
         //when
         chatService.createRoom(input);
 
         //then
-        verify(chatRoomMySqlRepository,times(1)).save(captor.capture());
-        ChatRoomMySql chatRoomMySqlCaptured = captor.getValue();
+        verify(chatRoomMySqlRepository,times(1)).save(roomCaptor.capture());
+        ChatRoomMySql chatRoomMySqlCaptured = roomCaptor.getValue();
         assertEquals(1L,chatRoomMySqlCaptured.getOwner().getId());
         assertEquals("채팅방1",chatRoomMySqlCaptured.getTitle());
         assertEquals(8,chatRoomMySqlCaptured.getMaxParticipant());
 
-
+        verify(chatRoomParticipantRepository,times(1)).save(participantCaptor.capture());
+        ChatRoomParticipant chatRoomParticipantCaptured = participantCaptor.getValue();
+        assertEquals(1L,chatRoomParticipantCaptured.getUserId());
+        assertEquals(chatRoomMySqlCaptured,chatRoomParticipantCaptured.getChatRoomMySql());
+        assertEquals(1L,chatRoomParticipantCaptured.getUserId());
     }
 
 
@@ -288,32 +293,6 @@ class ChatServiceTest {
         }
     }
 
-    @Test
-    void editRoomFail_StartDateError() {
-
-        //given
-        ChatRoomEditInput input = ChatRoomEditInput.builder()
-                .title("채팅방1")
-                .startDate(LocalDate.now().minusDays(1))
-                .endDate(LocalDate.now().plusDays(4))
-                .maxParticipant(8)
-                .password("1234")
-                .privateRoom(false)
-                .build();
-
-        User user = User.builder().id(1L).build();
-        given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
-                Optional.of(ChatRoomMySql.builder().owner(user).build()));
-        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
-        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(user));
-        //when
-        //then
-        try{
-            chatService.editRoom("1번방",input);
-        }catch (RuntimeException e){
-            assertEquals(START_DATE_MUST_BE_AFTER_TODAY.getMessage(),e.getMessage());
-        }
-    }
 
     @Test
     void editRoomFail_TooSmallMaxParticipant() {
