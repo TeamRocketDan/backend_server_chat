@@ -61,8 +61,15 @@ public class ChatServiceImpl implements ChatService{
 
         ChatRoomMySql chatRoom = ChatRoomMySql.of(user, param);
         chatRoom.setId(chatRoomMongoSave.getChatRoomId());
+        ChatRoomDto result = ChatRoomDto.of(chatRoomMySqlRepository.save(chatRoom));
 
-        return ChatRoomDto.of(chatRoomMySqlRepository.save(chatRoom));
+        ChatRoomParticipant participant = ChatRoomParticipant.builder()
+                .chatRoomMySql(chatRoom)
+                .userId(user.getId())
+                .build();
+
+        chatRoomParticipantRepository.save(participant);
+        return result;
     }
 
     @Transactional(readOnly = true)
