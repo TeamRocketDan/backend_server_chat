@@ -98,10 +98,6 @@ public class ChatServiceImpl implements ChatService{
             throw new ChatRoomException(NOT_CHAT_ROOM_OWNER);
         }
 
-        if(param.getStartDate().isBefore(LocalDate.now())){
-            throw new ChatRoomException(START_DATE_MUST_BE_AFTER_TODAY);
-        }
-
         if(param.getEndDate().isBefore(param.getStartDate())){
             throw new ChatRoomException(TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE);
         }

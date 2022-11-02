@@ -35,6 +35,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-reactor-netty', version: '2.4.6'
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.79.Final:osx-aarch_64'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 //jackson2json에서 LocalDateTime을 handling 하기 위해
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.12.4'
