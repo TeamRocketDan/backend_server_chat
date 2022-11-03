@@ -173,6 +173,55 @@ public class ChatControllerTest {
     }
 
     @Test
+    void myListRoomSuccess() throws Exception{
+
+        List<ChatRoomDto> chatRoomDtos = new ArrayList<>(5);
+        chatRoomDtos.add(ChatRoomDto.builder().id("채팅방1").build());
+        chatRoomDtos.add(ChatRoomDto.builder().id("채팅방2").build());
+
+        PagingResponse result = PagingResponse.builder()
+                .firstPage(false)
+                .lastPage(true)
+                .totalPage(20)
+                .totalElements(100)
+                .size(5)
+                .currentPage(20)
+                .build();
+
+        result.setContent(chatRoomDtos);
+
+        given(chatService.myListRoom(any())).willReturn(
+                result);
+
+        mockMvc.perform(get("/api/v1/chat/my-room-list?page=0&size=5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.firstPage").value(false))
+                .andExpect(jsonPath("$.result.lastPage").value(true))
+                .andExpect(jsonPath("$.result.totalPage").value(20))
+                .andExpect(jsonPath("$.result.totalElements").value(100))
+                .andExpect(jsonPath("$.result.size").value(5))
+                .andExpect(jsonPath("$.result.currentPage").value(20))
+                .andExpect(jsonPath("$.result.content[0]").isNotEmpty())
+                .andExpect(jsonPath("$.result.content[2]").doesNotExist())
+                .andDo(print());
+    }
+
+    @Test
+    void myListRoomFail_UserException() throws Exception{
+
+        doThrow(new UserException(USER_NOT_FOUND))
+                .when(chatService).myListRoom(any());
+
+        mockMvc.perform(get("/api/v1/chat/my-room-list?page=0&size=5"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
     void editRoomSuccess() throws Exception{
 
         given(chatService.editRoom(eq("1번방"),any())).willReturn(
