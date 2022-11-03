@@ -23,7 +23,6 @@ public class Message implements Serializable {
     private String id;
 
     private String roomId;
-    private String imgPath;
     private String senderName;
     private String senderImgSrc;
     private String message;
