@@ -101,10 +101,23 @@ public class ChatServiceImpl implements ChatService{
         Page<ChatRoomParticipant> participantPage =
                 chatRoomParticipantRepository.findAllByUserId(user.getId(), pageRequest);
 
-        Page<ChatRoomDto> chatRoomDtoPage =
-                participantPage.map(participant -> ChatRoomDto.of(participant.getChatRoomMySql()));
+        Page<ChatRoomMySql> chatRoomPage =
+                participantPage.map(ChatRoomParticipant::getChatRoomMySql);
 
-        return PagingResponse.fromEntity(chatRoomDtoPage);
+        List<ChatRoomDto> contents = new ArrayList<>(chatRoomPage.getContent().size());
+        for(ChatRoomMySql chatRoom:chatRoomPage.getContent()){
+            ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
+            chatRoomDto.setCurParticipant(chatRoom.getParticipants().size());
+
+            User owner = chatRoom.getOwner();
+            chatRoomDto.setOwnerInfo(owner.getNickname(),owner.getProfileImage());
+            contents.add(chatRoomDto);
+        }
+
+        PagingResponse<ChatRoomDto> result = PagingResponse.fromEntity(chatRoomPage);
+        result.setContent(contents);
+
+        return result;
     }
 
     @Override
