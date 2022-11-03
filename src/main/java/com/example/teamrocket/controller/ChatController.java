@@ -40,6 +40,14 @@ public class ChatController {
         return ResponseEntity.ok(success(results));
     }
 
+    @GetMapping("/my-room-list")
+    public ResponseEntity<ApiResult<PagingResponse<ChatRoomDto>>> myListRoom(@RequestParam Integer page, @RequestParam Integer size){
+
+        PageRequest pageRequest = PageRequest.of(page,size);
+        PagingResponse<ChatRoomDto> results = chatService.myListRoom(pageRequest);
+        return ResponseEntity.ok(success(results));
+    }
+
     @PatchMapping("/room/{roomId}")
     public ResponseEntity<ApiResult<ChatRoomDto>> editRoom(@PathVariable String roomId, @Valid @RequestBody ChatRoomEditInput param){
         ChatRoomDto chatRoom = chatService.editRoom(roomId,param);
