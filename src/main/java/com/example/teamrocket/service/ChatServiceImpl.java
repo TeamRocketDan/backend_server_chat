@@ -94,6 +94,20 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
+    public PagingResponse<ChatRoomDto> myListRoom(PageRequest pageRequest) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+
+        Page<ChatRoomParticipant> participantPage =
+                chatRoomParticipantRepository.findAllByUserId(user.getId(), pageRequest);
+
+        Page<ChatRoomDto> chatRoomDtoPage =
+                participantPage.map(participant -> ChatRoomDto.of(participant.getChatRoomMySql()));
+
+        return PagingResponse.fromEntity(chatRoomDtoPage);
+    }
+
+    @Override
     public ChatRoomDto editRoom(String roomId, ChatRoomEditInput param) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
