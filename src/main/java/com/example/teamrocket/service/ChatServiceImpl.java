@@ -21,6 +21,7 @@ import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +75,7 @@ public class ChatServiceImpl implements ChatService{
 
     @Transactional(readOnly = true)
     @Override
-    public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, PageRequest pageRequest) {
+    public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
         Page<ChatRoomMySql> chatRooms
                 = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
 
@@ -94,7 +95,7 @@ public class ChatServiceImpl implements ChatService{
     }
 
     @Override
-    public PagingResponse<ChatRoomDto> myListRoom(PageRequest pageRequest) {
+    public PagingResponse<ChatRoomDto> myListRoom(Pageable pageRequest) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
 

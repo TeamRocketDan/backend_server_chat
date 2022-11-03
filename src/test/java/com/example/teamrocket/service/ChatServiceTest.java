@@ -201,6 +201,78 @@ class ChatServiceTest {
     }
 
     @Test
+    void myListRoomSuccess() {
+        //given
+        User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+        User user2 = User.builder().id(1L).profileImage("프로필 이미지 경로2").nickname("닉네임2").build();
+        User user3 = User.builder().id(1L).profileImage("프로필 이미지 경로3").nickname("닉네임3").build();
+
+        ChatRoomMySql room1 = ChatRoomMySql.builder()
+                .title("채팅방1").rcate1("서울시").owner(user1).participants(new ArrayList<>()).build();
+        ChatRoomMySql room2 = ChatRoomMySql.builder()
+                .title("채팅방2").rcate1("서울시").owner(user2).participants(new ArrayList<>()).build();
+        ChatRoomMySql room3 = ChatRoomMySql.builder()
+                .title("채팅방3").rcate1("서울시").owner(user3).participants(new ArrayList<>()).build();
+
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
+                        .chatRoomMySql(room1).userId(1L).build();
+
+        ChatRoomParticipant participant2 = ChatRoomParticipant.builder()
+                .chatRoomMySql(room2).userId(1L).build();
+
+        ChatRoomParticipant participant3 = ChatRoomParticipant.builder()
+                .chatRoomMySql(room3).userId(1L).build();
+
+        participants.add(participant1);
+        participants.add(participant2);
+        participants.add(participant3);
+
+        PageRequest pageRequest = PageRequest.of(0,10);
+        Page<ChatRoomParticipant> chatRoomParticipantPage = new PageImpl<>(participants);
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(user1));
+        given(chatRoomParticipantRepository
+                .findAllByUserId(1L, pageRequest))
+                .willReturn(chatRoomParticipantPage);
+
+        //when
+        var results = chatService.myListRoom(pageRequest);
+        //then
+        assertEquals(3,results.getSize());
+
+        assertEquals("채팅방1",results.getContent().get(0).getTitle());
+        assertEquals(0,results.getContent().get(0).getCurParticipant());
+        assertEquals("프로필 이미지 경로1",results.getContent().get(0).getOwnerProfileImage());
+        assertEquals("닉네임1",results.getContent().get(0).getOwnerNickName());
+
+        assertEquals("채팅방2",results.getContent().get(1).getTitle());
+        assertEquals(0,results.getContent().get(1).getCurParticipant());
+        assertEquals("프로필 이미지 경로2",results.getContent().get(1).getOwnerProfileImage());
+        assertEquals("닉네임2",results.getContent().get(1).getOwnerNickName());
+    }
+
+    @Test
+    void myListRoomFail_NoUser() {
+        //given
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(Optional.empty());
+
+        //when
+        //then
+        try{
+            PageRequest pageRequest = PageRequest.of(0,10);
+            chatService.myListRoom(pageRequest);
+        } catch (UserException e){
+            assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
+        }
+    }
+
+
+    @Test
     void editRoomSuccess() {
 
         //given
