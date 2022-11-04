@@ -73,8 +73,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(1))
                 .maxParticipant(8)
-                .privateRoom(false)
-                .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
                 .longitude("위도")
@@ -132,8 +130,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().minusDays(1))
                 .maxParticipant(8)
-                .privateRoom(false)
-                .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
                 .longitude("위도")
@@ -181,7 +177,7 @@ class ChatServiceTest {
 
 
         given(chatRoomMySqlRepository
-                .findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate("서울시","동작구",pageRequest))
+                .findAllByRcate1AndRcate2AndDeletedAtIsNullOrderByStartDate("서울시","동작구",pageRequest))
                 .willReturn(chatRoomMySqlPage);
 
         //when
@@ -281,8 +277,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now().plusDays(2))
                 .endDate(LocalDate.now().plusDays(4))
                 .maxParticipant(8)
-                .password("1234")
-                .privateRoom(false)
                 .build();
 
         User user = User.builder().id(1L).build();
@@ -301,7 +295,6 @@ class ChatServiceTest {
 
         assertEquals("채팅방1",result.getTitle());
         assertEquals(8,result.getMaxParticipant());
-        assertFalse(result.isPrivateRoom());
     }
 
 
@@ -375,8 +368,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now().plusDays(1))
                 .endDate(LocalDate.now().plusDays(4))
                 .maxParticipant(1)
-                .password("1234")
-                .privateRoom(false)
                 .build();
 
         User user = User.builder().id(1L).build();
@@ -475,14 +466,14 @@ class ChatServiceTest {
 
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").participants(Collections.emptyList())
                 .maxParticipant(3)
-                .password("1234").build();
+                .build();
 
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
                 Optional.of(chatRoom));
 
         ArgumentCaptor<ChatRoomParticipant> captor = ArgumentCaptor.forClass(ChatRoomParticipant.class);
         //when
-        chatService.enterRoom("1번방","1234");
+        chatService.enterRoom("1번방");
         //then
         verify(chatRoomParticipantRepository,times(1)).save(captor.capture());
         ChatRoomParticipant chatRoomParticipantCaptured = captor.getValue();
@@ -507,7 +498,7 @@ class ChatServiceTest {
         participants.add(participant2);
 
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").maxParticipant(2)
-                .password("1234").participants(participants).build();
+                .participants(participants).build();
 
 
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
@@ -516,30 +507,9 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.enterRoom("1번방","1234");
+            chatService.enterRoom("1번방");
         }catch (Exception e){
             assertEquals(EXCEED_MAX_PARTICIPANTS.getMessage(),e.getMessage());
-        }
-    }
-
-    @Test
-    void enterRoomFail_PasswordNotMatch() {
-        //given
-        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
-        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
-
-        ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").privateRoom(true).maxParticipant(3)
-                .password("1234").build();
-
-        given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
-                Optional.of(chatRoom));
-
-        //when
-        //then
-        try{
-            chatService.enterRoom("1번방","4321");
-        }catch (Exception e){
-            assertEquals(PASSWORD_NOT_MATCH.getMessage(),e.getMessage());
         }
     }
 
@@ -550,7 +520,7 @@ class ChatServiceTest {
         given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
 
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").maxParticipant(3)
-                .password("1234").build();
+                .build();
 
 
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder().userId(1L)
