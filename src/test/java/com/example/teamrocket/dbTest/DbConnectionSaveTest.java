@@ -95,8 +95,6 @@ public class DbConnectionSaveTest {
                 .title("test")
                 .maxParticipant(10)
                 .owner(user)
-                .privateRoom(false)
-                .password("0")
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now())
                 .latitude("a")

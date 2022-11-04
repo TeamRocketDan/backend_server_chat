@@ -21,6 +21,7 @@ import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,9 +75,9 @@ public class ChatServiceImpl implements ChatService{
 
     @Transactional(readOnly = true)
     @Override
-    public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, PageRequest pageRequest) {
+    public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
         Page<ChatRoomMySql> chatRooms
-                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
+                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
 
         List<ChatRoomDto> contents = new ArrayList<>(chatRooms.getContent().size());
         for(ChatRoomMySql chatRoom:chatRooms.getContent()){
@@ -90,6 +91,34 @@ public class ChatServiceImpl implements ChatService{
 
         PagingResponse<ChatRoomDto> result = PagingResponse.fromEntity(chatRooms);
         result.setContent(contents);
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public PagingResponse<ChatRoomDto> myListRoom(Pageable pageRequest) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+
+        Page<ChatRoomParticipant> participantPage =
+                chatRoomParticipantRepository.findAllByUserId(user.getId(), pageRequest);
+
+        Page<ChatRoomMySql> chatRoomPage =
+                participantPage.map(ChatRoomParticipant::getChatRoomMySql);
+
+        List<ChatRoomDto> contents = new ArrayList<>(chatRoomPage.getContent().size());
+        for(ChatRoomMySql chatRoom:chatRoomPage.getContent()){
+            ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
+            chatRoomDto.setCurParticipant(chatRoom.getParticipants().size());
+
+            User owner = chatRoom.getOwner();
+            chatRoomDto.setOwnerInfo(owner.getNickname(),owner.getProfileImage());
+            contents.add(chatRoomDto);
+        }
+
+        PagingResponse<ChatRoomDto> result = PagingResponse.fromEntity(chatRoomPage);
+        result.setContent(contents);
+
         return result;
     }
 
@@ -137,17 +166,13 @@ public class ChatServiceImpl implements ChatService{
 
 
     @Override
-    public ChatRoomServiceResult enterRoom(String roomId, String password) {
+    public ChatRoomServiceResult enterRoom(String roomId) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
         Long userId = user.getId();
 
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
-
-        if(chatRoom.isPrivateRoom() && !chatRoom.getPassword().equals(password)){
-            throw new ChatRoomException(PASSWORD_NOT_MATCH);
-        }
 
         List<ChatRoomParticipant> participants = chatRoom.getParticipants();
 
@@ -183,6 +208,7 @@ public class ChatServiceImpl implements ChatService{
         return new ChatRoomServiceResult(roomId,userId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public MessagePagingResponse<MessageDto> getMessages(String roomId, LocalDate date,Integer page, Integer size) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
@@ -212,6 +238,7 @@ public class ChatServiceImpl implements ChatService{
         return response;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public MessagePagingResponse<MessageDto> getMessagesMongo(String roomId, Integer page, Integer size) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(

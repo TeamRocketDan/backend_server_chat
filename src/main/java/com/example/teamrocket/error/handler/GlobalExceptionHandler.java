@@ -4,7 +4,9 @@ import com.example.teamrocket.error.exception.ChatRoomException;
 import com.example.teamrocket.error.exception.UserException;
 import com.example.teamrocket.error.result.GlobalErrorResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -32,5 +34,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> chatRoomExceptionHandler(ChatRoomException e){
         GlobalErrorResult result = GlobalErrorResult.of(e.getErrorMessage());
         return new ResponseEntity<>(result,e.getErrorCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e){
+        GlobalErrorResult result = GlobalErrorResult.of(e.getAllErrors().get(0).getDefaultMessage());
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 }

@@ -63,7 +63,6 @@ public class ChatControllerTest {
                         .endDate(LocalDate.now().plusDays(2))
                         .curParticipant(3)
                         .maxParticipant(6)
-                        .privateRoom(false)
                         .ownerNickName("주인장")
                         .ownerProfileImage("사진사진")
                         .rcate1("서울시")
@@ -78,7 +77,16 @@ public class ChatControllerTest {
         mockMvc.perform(post("/api/v1/chat/room")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
-                        new ChatRoomCreateInput()
+                        ChatRoomCreateInput.builder()
+                                .title("1번방")
+                                .startDate(LocalDate.now().plusDays(1))
+                                .endDate(LocalDate.now().plusDays(3))
+                                .maxParticipant(6)
+                                .rcate1("서울시")
+                                .rcate2("동작구")
+                                .longitude("경도")
+                                .latitude("위도")
+                                .build()
                 )))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -88,7 +96,6 @@ public class ChatControllerTest {
                 .andExpect(jsonPath("$.result.endDate").value(formatter.format(LocalDate.now().plusDays(2))))
                 .andExpect(jsonPath("$.result.curParticipant").value(3))
                 .andExpect(jsonPath("$.result.maxParticipant").value(6))
-                .andExpect(jsonPath("$.result.privateRoom").value(false))
                 .andExpect(jsonPath("$.result.ownerNickName").value("주인장"))
                 .andExpect(jsonPath("$.result.ownerProfileImage").value("사진사진"))
                 .andExpect(jsonPath("$.result.rcate1").value("서울시"))
@@ -108,7 +115,16 @@ public class ChatControllerTest {
         mockMvc.perform(post("/api/v1/chat/room")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomCreateInput()
+                                ChatRoomCreateInput.builder()
+                                        .title("1번방")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(6)
+                                        .rcate1("서울시")
+                                        .rcate2("동작구")
+                                        .longitude("경도")
+                                        .latitude("위도")
+                                        .build()
                         )))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -128,7 +144,16 @@ public class ChatControllerTest {
                         .header("X_AUTH_TOKEN","111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomCreateInput()
+                                ChatRoomCreateInput.builder()
+                                        .title("1번방")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(6)
+                                        .rcate1("서울시")
+                                        .rcate2("동작구")
+                                        .longitude("경도")
+                                        .latitude("위도")
+                                        .build()
                         )))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -173,6 +198,55 @@ public class ChatControllerTest {
     }
 
     @Test
+    void myListRoomSuccess() throws Exception{
+
+        List<ChatRoomDto> chatRoomDtos = new ArrayList<>(5);
+        chatRoomDtos.add(ChatRoomDto.builder().id("채팅방1").build());
+        chatRoomDtos.add(ChatRoomDto.builder().id("채팅방2").build());
+
+        PagingResponse result = PagingResponse.builder()
+                .firstPage(false)
+                .lastPage(true)
+                .totalPage(20)
+                .totalElements(100)
+                .size(5)
+                .currentPage(20)
+                .build();
+
+        result.setContent(chatRoomDtos);
+
+        given(chatService.myListRoom(any())).willReturn(
+                result);
+
+        mockMvc.perform(get("/api/v1/chat/my-room-list?page=0&size=5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.firstPage").value(false))
+                .andExpect(jsonPath("$.result.lastPage").value(true))
+                .andExpect(jsonPath("$.result.totalPage").value(20))
+                .andExpect(jsonPath("$.result.totalElements").value(100))
+                .andExpect(jsonPath("$.result.size").value(5))
+                .andExpect(jsonPath("$.result.currentPage").value(20))
+                .andExpect(jsonPath("$.result.content[0]").isNotEmpty())
+                .andExpect(jsonPath("$.result.content[2]").doesNotExist())
+                .andDo(print());
+    }
+
+    @Test
+    void myListRoomFail_UserException() throws Exception{
+
+        doThrow(new UserException(USER_NOT_FOUND))
+                .when(chatService).myListRoom(any());
+
+        mockMvc.perform(get("/api/v1/chat/my-room-list?page=0&size=5"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
+
+    @Test
     void editRoomSuccess() throws Exception{
 
         given(chatService.editRoom(eq("1번방"),any())).willReturn(
@@ -183,7 +257,6 @@ public class ChatControllerTest {
                         .endDate(LocalDate.now().plusDays(2))
                         .curParticipant(3)
                         .maxParticipant(6)
-                        .privateRoom(false)
                         .ownerNickName("주인장")
                         .ownerProfileImage("사진사진")
                         .rcate1("서울시")
@@ -199,7 +272,11 @@ public class ChatControllerTest {
         mockMvc.perform(patch("/api/v1/chat/room/1번방")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomEditInput()
+                                ChatRoomEditInput.builder()
+                                        .title("fdf")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(8).build()
                         )))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -209,7 +286,6 @@ public class ChatControllerTest {
                 .andExpect(jsonPath("$.result.endDate").value(formatter.format(LocalDate.now().plusDays(2))))
                 .andExpect(jsonPath("$.result.curParticipant").value(3))
                 .andExpect(jsonPath("$.result.maxParticipant").value(6))
-                .andExpect(jsonPath("$.result.privateRoom").value(false))
                 .andExpect(jsonPath("$.result.ownerNickName").value("주인장"))
                 .andExpect(jsonPath("$.result.ownerProfileImage").value("사진사진"))
                 .andExpect(jsonPath("$.result.rcate1").value("서울시"))
@@ -228,7 +304,11 @@ public class ChatControllerTest {
         mockMvc.perform(patch("/api/v1/chat/room/1번방")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomEditInput()
+                                ChatRoomEditInput.builder()
+                                        .title("fdf")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(8).build()
                         )))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -246,7 +326,11 @@ public class ChatControllerTest {
         mockMvc.perform(patch("/api/v1/chat/room/1번방")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomEditInput()
+                                ChatRoomEditInput.builder()
+                                        .title("fdf")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(8).build()
                         )))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -264,31 +348,16 @@ public class ChatControllerTest {
         mockMvc.perform(patch("/api/v1/chat/room/1번방")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomEditInput()
+                                ChatRoomEditInput.builder()
+                                        .title("fdf")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(8).build()
                         )))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.result").isEmpty())
                 .andExpect(jsonPath("$.errorMessage").value(NOT_CHAT_ROOM_OWNER.getMessage()))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("여행 시작날짜 에러 - 오늘 이후로 수정할 수 있습니다.")
-    void editRoomFail_StartDateUntilTodayNotPermitted() throws Exception{
-
-        doThrow(new ChatRoomException(START_DATE_MUST_BE_AFTER_TODAY))
-                .when(chatService).editRoom(eq("1번방"),any());
-
-        mockMvc.perform(patch("/api/v1/chat/room/1번방")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                new ChatRoomEditInput()
-                        )))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.result").isEmpty())
-                .andExpect(jsonPath("$.errorMessage").value(START_DATE_MUST_BE_AFTER_TODAY.getMessage()))
                 .andDo(print());
     }
 
@@ -302,7 +371,11 @@ public class ChatControllerTest {
         mockMvc.perform(patch("/api/v1/chat/room/1번방")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomEditInput()
+                                ChatRoomEditInput.builder()
+                                        .title("fdf")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(8).build()
                         )))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -321,7 +394,11 @@ public class ChatControllerTest {
         mockMvc.perform(patch("/api/v1/chat/room/1번방")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new ChatRoomEditInput()
+                                ChatRoomEditInput.builder()
+                                        .title("fdf")
+                                        .startDate(LocalDate.now().plusDays(1))
+                                        .endDate(LocalDate.now().plusDays(3))
+                                        .maxParticipant(8).build()
                         )))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -377,7 +454,7 @@ public class ChatControllerTest {
     @Test
     void enterRoomSuccess() throws Exception{
 
-        given(chatService.enterRoom(eq("1번방"),eq("1234"))).willReturn(
+        given(chatService.enterRoom(eq("1번방"))).willReturn(
                 new ChatRoomServiceResult("1번방",1L)
         );
 
@@ -392,7 +469,7 @@ public class ChatControllerTest {
     @Test
     void enterRoomFail_NoUser() throws Exception{
         doThrow(new UserException(USER_NOT_FOUND))
-                .when(chatService).enterRoom(eq("1번방"),any());
+                .when(chatService).enterRoom(eq("1번방"));
 
         mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
                 .andExpect(status().isNotFound())
@@ -405,7 +482,7 @@ public class ChatControllerTest {
     @Test
     void enterRoomFail_NoChatRoom() throws Exception{
         doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
-                .when(chatService).enterRoom(eq("1번방"),any());
+                .when(chatService).enterRoom(eq("1번방"));
 
         mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
                 .andExpect(status().isNotFound())
@@ -418,7 +495,7 @@ public class ChatControllerTest {
     @Test
     void enterRoomFail_PasswordNotMatch() throws Exception{
         doThrow(new ChatRoomException(PASSWORD_NOT_MATCH))
-                .when(chatService).enterRoom(eq("1번방"),any());
+                .when(chatService).enterRoom(eq("1번방"));
 
         mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
                 .andExpect(status().isBadRequest())
@@ -431,7 +508,7 @@ public class ChatControllerTest {
     @Test
     void enterRoomFail_ExceedMaxParticipants() throws Exception{
         doThrow(new ChatRoomException(EXCEED_MAX_PARTICIPANTS))
-                .when(chatService).enterRoom(eq("1번방"),any());
+                .when(chatService).enterRoom(eq("1번방"));
 
         mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password="))
                 .andExpect(status().isBadRequest())

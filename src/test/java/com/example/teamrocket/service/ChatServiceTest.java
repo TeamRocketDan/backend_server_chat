@@ -73,8 +73,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(1))
                 .maxParticipant(8)
-                .privateRoom(false)
-                .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
                 .longitude("위도")
@@ -132,8 +130,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().minusDays(1))
                 .maxParticipant(8)
-                .privateRoom(false)
-                .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
                 .longitude("위도")
@@ -181,7 +177,7 @@ class ChatServiceTest {
 
 
         given(chatRoomMySqlRepository
-                .findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate("서울시","동작구",pageRequest))
+                .findAllByRcate1AndRcate2AndDeletedAtIsNullOrderByStartDate("서울시","동작구",pageRequest))
                 .willReturn(chatRoomMySqlPage);
 
         //when
@@ -201,6 +197,78 @@ class ChatServiceTest {
     }
 
     @Test
+    void myListRoomSuccess() {
+        //given
+        User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+        User user2 = User.builder().id(1L).profileImage("프로필 이미지 경로2").nickname("닉네임2").build();
+        User user3 = User.builder().id(1L).profileImage("프로필 이미지 경로3").nickname("닉네임3").build();
+
+        ChatRoomMySql room1 = ChatRoomMySql.builder()
+                .title("채팅방1").rcate1("서울시").owner(user1).participants(new ArrayList<>()).build();
+        ChatRoomMySql room2 = ChatRoomMySql.builder()
+                .title("채팅방2").rcate1("서울시").owner(user2).participants(new ArrayList<>()).build();
+        ChatRoomMySql room3 = ChatRoomMySql.builder()
+                .title("채팅방3").rcate1("서울시").owner(user3).participants(new ArrayList<>()).build();
+
+        List<ChatRoomParticipant> participants = new ArrayList<>();
+
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
+                        .chatRoomMySql(room1).userId(1L).build();
+
+        ChatRoomParticipant participant2 = ChatRoomParticipant.builder()
+                .chatRoomMySql(room2).userId(1L).build();
+
+        ChatRoomParticipant participant3 = ChatRoomParticipant.builder()
+                .chatRoomMySql(room3).userId(1L).build();
+
+        participants.add(participant1);
+        participants.add(participant2);
+        participants.add(participant3);
+
+        PageRequest pageRequest = PageRequest.of(0,10);
+        Page<ChatRoomParticipant> chatRoomParticipantPage = new PageImpl<>(participants);
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(user1));
+        given(chatRoomParticipantRepository
+                .findAllByUserId(1L, pageRequest))
+                .willReturn(chatRoomParticipantPage);
+
+        //when
+        var results = chatService.myListRoom(pageRequest);
+        //then
+        assertEquals(3,results.getSize());
+
+        assertEquals("채팅방1",results.getContent().get(0).getTitle());
+        assertEquals(0,results.getContent().get(0).getCurParticipant());
+        assertEquals("프로필 이미지 경로1",results.getContent().get(0).getOwnerProfileImage());
+        assertEquals("닉네임1",results.getContent().get(0).getOwnerNickName());
+
+        assertEquals("채팅방2",results.getContent().get(1).getTitle());
+        assertEquals(0,results.getContent().get(1).getCurParticipant());
+        assertEquals("프로필 이미지 경로2",results.getContent().get(1).getOwnerProfileImage());
+        assertEquals("닉네임2",results.getContent().get(1).getOwnerNickName());
+    }
+
+    @Test
+    void myListRoomFail_NoUser() {
+        //given
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(Optional.empty());
+
+        //when
+        //then
+        try{
+            PageRequest pageRequest = PageRequest.of(0,10);
+            chatService.myListRoom(pageRequest);
+        } catch (UserException e){
+            assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
+        }
+    }
+
+
+    @Test
     void editRoomSuccess() {
 
         //given
@@ -209,8 +277,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now().plusDays(2))
                 .endDate(LocalDate.now().plusDays(4))
                 .maxParticipant(8)
-                .password("1234")
-                .privateRoom(false)
                 .build();
 
         User user = User.builder().id(1L).build();
@@ -229,7 +295,6 @@ class ChatServiceTest {
 
         assertEquals("채팅방1",result.getTitle());
         assertEquals(8,result.getMaxParticipant());
-        assertFalse(result.isPrivateRoom());
     }
 
 
@@ -303,8 +368,6 @@ class ChatServiceTest {
                 .startDate(LocalDate.now().plusDays(1))
                 .endDate(LocalDate.now().plusDays(4))
                 .maxParticipant(1)
-                .password("1234")
-                .privateRoom(false)
                 .build();
 
         User user = User.builder().id(1L).build();
@@ -403,14 +466,14 @@ class ChatServiceTest {
 
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").participants(Collections.emptyList())
                 .maxParticipant(3)
-                .password("1234").build();
+                .build();
 
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
                 Optional.of(chatRoom));
 
         ArgumentCaptor<ChatRoomParticipant> captor = ArgumentCaptor.forClass(ChatRoomParticipant.class);
         //when
-        chatService.enterRoom("1번방","1234");
+        chatService.enterRoom("1번방");
         //then
         verify(chatRoomParticipantRepository,times(1)).save(captor.capture());
         ChatRoomParticipant chatRoomParticipantCaptured = captor.getValue();
@@ -435,7 +498,7 @@ class ChatServiceTest {
         participants.add(participant2);
 
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").maxParticipant(2)
-                .password("1234").participants(participants).build();
+                .participants(participants).build();
 
 
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
@@ -444,30 +507,9 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.enterRoom("1번방","1234");
+            chatService.enterRoom("1번방");
         }catch (Exception e){
             assertEquals(EXCEED_MAX_PARTICIPANTS.getMessage(),e.getMessage());
-        }
-    }
-
-    @Test
-    void enterRoomFail_PasswordNotMatch() {
-        //given
-        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
-        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
-
-        ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").privateRoom(true).maxParticipant(3)
-                .password("1234").build();
-
-        given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNull("1번방")).willReturn(
-                Optional.of(chatRoom));
-
-        //when
-        //then
-        try{
-            chatService.enterRoom("1번방","4321");
-        }catch (Exception e){
-            assertEquals(PASSWORD_NOT_MATCH.getMessage(),e.getMessage());
         }
     }
 
@@ -478,7 +520,7 @@ class ChatServiceTest {
         given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
 
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").maxParticipant(3)
-                .password("1234").build();
+                .build();
 
 
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder().userId(1L)
