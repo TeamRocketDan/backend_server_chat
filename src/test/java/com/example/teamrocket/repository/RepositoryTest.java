@@ -35,8 +35,6 @@ public class RepositoryTest {
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().minusDays(1))
                 .maxParticipant(8)
-                .privateRoom(false)
-                .password("1234")
                 .rcate1("rcate1")
                 .rcate2("rcate2")
                 .longitude("위도")
