@@ -26,8 +26,6 @@ public class ChatRoomCreateInput {
     @Min(2)
     @Max(10)
     private int maxParticipant;
-    private boolean privateRoom;
-    private String password;
 
     @Size(max = 20)
     @NotNull

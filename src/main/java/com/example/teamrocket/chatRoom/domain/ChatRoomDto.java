@@ -20,7 +20,6 @@ public class ChatRoomDto {
     private LocalDate endDate;
     private int curParticipant;
     private int maxParticipant;
-    private boolean privateRoom;
 
     private String ownerNickName;
     private String ownerProfileImage;
@@ -38,7 +37,6 @@ public class ChatRoomDto {
                 .startDate(chatRoom.getStartDate())
                 .endDate(chatRoom.getEndDate())
                 .maxParticipant(chatRoom.getMaxParticipant())
-                .privateRoom(chatRoom.isPrivateRoom())
                 .rcate1(chatRoom.getRcate1())
                 .rcate2(chatRoom.getRcate2())
                 .longitude(chatRoom.getLongitude())

@@ -33,8 +33,7 @@ public class ChatRoomMySql extends BaseEntity {
     private LocalDate startDate;
     private LocalDate endDate;
     private int maxParticipant;
-    private boolean privateRoom;
-    private String password;
+
 
     private String rcate1;
     private String rcate2;
@@ -54,8 +53,6 @@ public class ChatRoomMySql extends BaseEntity {
                 .startDate(input.getStartDate())
                 .endDate(input.getEndDate())
                 .maxParticipant(input.getMaxParticipant())
-                .privateRoom(input.isPrivateRoom())
-                .password(input.getPassword()) //차후 수정 필요
                 .rcate1(input.getRcate1())
                 .rcate2(input.getRcate2())
                 .longitude(input.getLongitude())
@@ -69,8 +66,6 @@ public class ChatRoomMySql extends BaseEntity {
         this.startDate = param.getStartDate();
         this.endDate = param.getEndDate();
         this.maxParticipant = param.getMaxParticipant();
-        this.privateRoom = param.isPrivateRoom();
-        this.password = param.getPassword();
     }
     public void setId(String id){
         this.id = id;
