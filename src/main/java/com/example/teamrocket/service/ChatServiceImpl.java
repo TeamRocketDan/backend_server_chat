@@ -77,7 +77,7 @@ public class ChatServiceImpl implements ChatService{
     @Override
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
         Page<ChatRoomMySql> chatRooms
-                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndPrivateRoomFalseAndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
+                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
 
         List<ChatRoomDto> contents = new ArrayList<>(chatRooms.getContent().size());
         for(ChatRoomMySql chatRoom:chatRooms.getContent()){
@@ -165,17 +165,13 @@ public class ChatServiceImpl implements ChatService{
 
 
     @Override
-    public ChatRoomServiceResult enterRoom(String roomId, String password) {
+    public ChatRoomServiceResult enterRoom(String roomId) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
         Long userId = user.getId();
 
         ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
-
-        if(chatRoom.isPrivateRoom() && !chatRoom.getPassword().equals(password)){
-            throw new ChatRoomException(PASSWORD_NOT_MATCH);
-        }
 
         List<ChatRoomParticipant> participants = chatRoom.getParticipants();
 

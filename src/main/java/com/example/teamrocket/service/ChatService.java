@@ -18,7 +18,7 @@ public interface ChatService {
 
     void deleteRoom(String roomId);
 
-    ChatRoomServiceResult enterRoom(String roomId, String password);
+    ChatRoomServiceResult enterRoom(String roomId);
 
     ChatRoomServiceResult leaveRoom(String roomId);
 

@@ -63,8 +63,8 @@ public class ChatController {
     }
 
     @PatchMapping("/room-enter/{roomId}")
-    public ResponseEntity<ApiResult<ChatRoomServiceResult>> enterRoom(@PathVariable String roomId, @RequestParam(required = false) String password){
-        ChatRoomServiceResult result = chatService.enterRoom(roomId, password);
+    public ResponseEntity<ApiResult<ChatRoomServiceResult>> enterRoom(@PathVariable String roomId){
+        ChatRoomServiceResult result = chatService.enterRoom(roomId);
         return ResponseEntity.ok(success(result));
     }
 
