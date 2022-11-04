@@ -94,6 +94,7 @@ public class ChatServiceImpl implements ChatService{
         return result;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public PagingResponse<ChatRoomDto> myListRoom(Pageable pageRequest) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
@@ -207,6 +208,7 @@ public class ChatServiceImpl implements ChatService{
         return new ChatRoomServiceResult(roomId,userId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public MessagePagingResponse<MessageDto> getMessages(String roomId, LocalDate date,Integer page, Integer size) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
@@ -236,6 +238,7 @@ public class ChatServiceImpl implements ChatService{
         return response;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public MessagePagingResponse<MessageDto> getMessagesMongo(String roomId, Integer page, Integer size) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
