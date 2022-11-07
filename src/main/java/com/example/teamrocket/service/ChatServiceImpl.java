@@ -222,8 +222,7 @@ public class ChatServiceImpl implements ChatService{
                 .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
                         () -> new ChatRoomException(NOT_PARTICIPATED_USER));
 
-        var leftTime = participant.getLeftAt();
-
+        var leftTime = participant.getLeftAt() == null ? participant.getCreatedAt() : participant.getLeftAt();
         MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
         response.setLastDay(leftTime.toLocalDate().isEqual(date));
 
@@ -232,8 +231,14 @@ public class ChatServiceImpl implements ChatService{
         String dayOfMessageId = chatRoom.getId()+"#"+targetDateString;
 
         List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page,size);
-        List<MessageDto>messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime))
-                .map(MessageDto::of).collect(Collectors.toList());
+        List<MessageDto>messageDtos;
+        if(response.isLastDay()){
+            messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime))
+                    .map(MessageDto::of).collect(Collectors.toList());
+        }else{
+            messageDtos = messages.stream().map(MessageDto::of).collect(Collectors.toList());
+        }
+
         response.setFromList(messageDtos,size,date);
         return response;
     }
@@ -255,8 +260,7 @@ public class ChatServiceImpl implements ChatService{
         ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        LocalDateTime leftTime = participant.getLeftAt();
-
+        LocalDateTime leftTime = participant.getLeftAt() == null ? participant.getCreatedAt() : participant.getLeftAt();
         MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
         LocalDate targetDate = LocalDate.now().minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -265,7 +269,7 @@ public class ChatServiceImpl implements ChatService{
         while(true){
             targetDate = targetDate.minusDays(1);
 
-            if(targetDate.minusDays(1).isBefore(leftTime.toLocalDate())){
+            if(targetDate.equals(leftTime.toLocalDate())){
                 response.setLastDay(true);
             }
 
@@ -294,7 +298,12 @@ public class ChatServiceImpl implements ChatService{
         }
 
         PageRequest pageRequest = PageRequest.of(page-pastPage,size);
-        Page<Message> messagePage= messageRepository.findAllByRoomId(roomId, pageRequest);
+        Page<Message> messagePage;
+        if(response.isLastDay()){
+            messagePage = messageRepository.findAllByRoomIdAndCreatedAtAfter(roomId,leftTime,pageRequest);
+        }else{
+            messagePage= messageRepository.findAllByRoomId(roomId, pageRequest);
+        }
         Page<MessageDto> messageDtoPage = messagePage.map(MessageDto::of);
         response.setFromPage(messageDtoPage,targetDate);
 
