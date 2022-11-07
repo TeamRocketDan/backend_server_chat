@@ -80,6 +80,7 @@ public class ChatController {
                          @RequestParam Integer page, @RequestParam Integer size){
 
         MessagePagingResponse<MessageDto> messages = chatService.getMessages(roomId,date,page,size);
+        log.info("Messages get total "+ messages.getContent().size());
         return ResponseEntity.ok(success(messages));
     }
 

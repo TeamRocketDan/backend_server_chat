@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: test
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,8 +23,6 @@ spring:
       database: ${MONGO_NAME}
 
   jpa:
-#    hibernate:
-#      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -40,12 +38,6 @@ spring:
     password: ${RABBIT_PASSWORD}
     host: ${RABBIT_HOST}
     port: ${RABBIT_PORT}
-
-  batch:
-    jdbc:
-      initialize-schema: always
-    job:
-      enabled: false
 
 cors:
   allowed-origins: 'http://localhost:3000'
