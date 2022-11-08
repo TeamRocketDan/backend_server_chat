@@ -15,7 +15,8 @@ public enum ChatRoomErrorCode {
     START_DATE_MUST_BE_AFTER_TODAY(HttpStatus.BAD_REQUEST,"여행 시작날짜는 현재 날짜 이후여야합니다."),
     NOT_CHAT_ROOM_OWNER(HttpStatus.BAD_REQUEST,"방장이 아닙니다."),
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND,"방을 찾을 수 없습니다."),
-    TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE(HttpStatus.BAD_REQUEST,"여행 시작 날짜는 여행 끝 날짜 이전이여야 합니다.");
+    TRAVEL_START_DATE_MUST_BE_BEFORE_END_DATE(HttpStatus.BAD_REQUEST,"여행 시작 날짜는 여행 끝 날짜 이전이여야 합니다."),
+    SHOULD_BE_OLDER_THAN_ONE_DAY_AGO(HttpStatus.BAD_REQUEST,"어제보다 오래된 데이터를 불러와야합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

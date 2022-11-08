@@ -277,6 +277,11 @@ public class ChatServiceImpl implements ChatService{
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
         LocalDateTime leftTime = participant.getLeftAt() == null ? participant.getCreatedAt() : participant.getLeftAt();
+
+        if(leftTime.toLocalDate().isAfter(LocalDate.now().minusDays(2))){
+            throw new ChatRoomException(SHOULD_BE_OLDER_THAN_ONE_DAY_AGO);
+        }
+
         MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
         LocalDate targetDate = LocalDate.now().minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
