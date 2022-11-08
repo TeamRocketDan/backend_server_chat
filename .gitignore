@@ -38,3 +38,4 @@ out/
 
 ## properties ignore
 *.properties
+application-dev.properties

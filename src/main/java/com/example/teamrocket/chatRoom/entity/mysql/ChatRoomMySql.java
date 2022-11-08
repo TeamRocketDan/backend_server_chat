@@ -5,6 +5,7 @@ import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.config.jpa.BaseEntity;
 import com.example.teamrocket.user.entity.User;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -21,6 +22,8 @@ import java.util.List;
 public class ChatRoomMySql extends BaseEntity {
 
     @Id @Column(name = "chat_id")
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name="system-uuid", strategy = "uuid")
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)

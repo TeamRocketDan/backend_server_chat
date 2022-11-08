@@ -23,6 +23,8 @@ spring:
       database: ${MONGO_NAME}
 
   jpa:
+#    hibernate:
+#      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -47,6 +49,7 @@ cors:
 
 logging:
   level:
+    org.hibernate.SQL: debug
     org.springframework.data.mongodb.core.MongoTemplate: debug
 
 jwt:
