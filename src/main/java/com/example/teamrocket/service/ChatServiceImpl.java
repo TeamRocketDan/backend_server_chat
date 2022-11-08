@@ -78,7 +78,7 @@ public class ChatServiceImpl implements ChatService{
     @Override
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
         Page<ChatRoomMySql> chatRooms
-                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateBeforeOrderByStartDate(rcate1,rcate2,LocalDate.now(),pageRequest);
+                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(rcate1,rcate2,LocalDate.now(),pageRequest);
 
         List<ChatRoomDto> contents = new ArrayList<>(chatRooms.getContent().size());
         for(ChatRoomMySql chatRoom:chatRooms.getContent()){
