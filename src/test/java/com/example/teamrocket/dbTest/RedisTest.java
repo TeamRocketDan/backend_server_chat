@@ -3,14 +3,18 @@ package com.example.teamrocket.dbTest;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
+import com.example.teamrocket.config.rabbit.RabbitConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -25,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
 public class RedisTest {
-
     @Autowired
     private RedisTemplate<String, Message> redisTemplate;
 

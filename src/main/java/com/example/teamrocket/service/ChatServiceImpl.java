@@ -250,6 +250,9 @@ public class ChatServiceImpl implements ChatService{
         String dayOfMessageId = chatRoom.getId()+"#"+targetDateString;
 
         List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page,size);
+        for (Message message : messages) {
+            System.out.println(">>>>>>>>>>>>> "+message.getMessage());
+        }
         List<MessageDto>messageDtos;
         if(response.isLastDay()){
             messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime))

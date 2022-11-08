@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+## properties ignore
+*.properties
+application-dev.properties
