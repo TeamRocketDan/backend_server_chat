@@ -24,6 +24,7 @@ public class ChatRoomParticipant extends BaseEntity {
     private ChatRoomMySql chatRoomMySql;
 
     private Long userId;
+    private boolean isOwner;
     private LocalDateTime leftAt;
 
     public void setLeftAt(LocalDateTime leftAt){
