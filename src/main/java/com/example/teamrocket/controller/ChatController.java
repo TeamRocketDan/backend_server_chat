@@ -81,7 +81,6 @@ public class ChatController {
         return ResponseEntity.ok(success(result));
     }
 
-
     @GetMapping("/message/{roomId}")
     public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessages(@PathVariable String roomId,
                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
