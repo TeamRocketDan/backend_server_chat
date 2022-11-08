@@ -333,7 +333,7 @@ public class ChatServiceImpl implements ChatService{
                 .findByIdAndDeletedAtIsNullAndEndDateAfter(roomId,LocalDate.now().minusDays(1))
                 .orElseThrow(() -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        return chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom)
+        return chatRoom.getParticipants()
                 .stream().map(ChatRoomParticipantDto::of).collect(Collectors.toList());
     }
 
