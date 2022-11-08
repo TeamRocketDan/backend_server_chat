@@ -14,11 +14,13 @@ import java.time.LocalDateTime;
 public class ChatRoomParticipantDto {
     private Long userId;
     private LocalDateTime leftAt;
+    private boolean isOwner;
 
     public static ChatRoomParticipantDto of(ChatRoomParticipant participant){
         return ChatRoomParticipantDto.builder()
                 .userId(participant.getUserId())
                 .leftAt(participant.getLeftAt())
+                .isOwner(participant.isOwner())
                 .build();
     }
 }
