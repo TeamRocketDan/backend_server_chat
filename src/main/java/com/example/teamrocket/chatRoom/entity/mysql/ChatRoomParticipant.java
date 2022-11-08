@@ -26,6 +26,8 @@ public class ChatRoomParticipant extends BaseEntity {
     private Long userId;
     private boolean isOwner;
     private LocalDateTime leftAt;
+    private String nickname;
+    private String profileImage;
 
     public void setLeftAt(LocalDateTime leftAt){
         this.leftAt = leftAt;

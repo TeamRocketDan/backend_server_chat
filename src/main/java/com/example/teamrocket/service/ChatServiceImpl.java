@@ -68,6 +68,8 @@ public class ChatServiceImpl implements ChatService{
                 .chatRoomMySql(chatRoom)
                 .isOwner(true)
                 .userId(user.getId())
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
                 .build();
 
         chatRoomParticipantRepository.save(participant);
@@ -191,6 +193,8 @@ public class ChatServiceImpl implements ChatService{
                     .isOwner(false)
                     .chatRoomMySql(chatRoom)
                     .userId(userId)
+                    .nickname(user.getNickname())
+                    .profileImage(user.getProfileImage())
                     .build();
             chatRoomParticipantRepository.save(participant);
             return new ChatRoomEnterResult(roomId,userId,true);

@@ -15,12 +15,16 @@ public class ChatRoomParticipantDto {
     private Long userId;
     private LocalDateTime leftAt;
     private boolean isOwner;
+    private String nickname;
+    private String profileImage;
 
     public static ChatRoomParticipantDto of(ChatRoomParticipant participant){
         return ChatRoomParticipantDto.builder()
                 .userId(participant.getUserId())
                 .leftAt(participant.getLeftAt())
                 .isOwner(participant.isOwner())
+                .nickname(participant.getNickname())
+                .profileImage(participant.getProfileImage())
                 .build();
     }
 }
