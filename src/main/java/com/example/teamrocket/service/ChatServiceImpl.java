@@ -66,6 +66,7 @@ public class ChatServiceImpl implements ChatService{
 
         ChatRoomParticipant participant = ChatRoomParticipant.builder()
                 .chatRoomMySql(chatRoom)
+                .isOwner(true)
                 .userId(user.getId())
                 .build();
 
@@ -77,7 +78,7 @@ public class ChatServiceImpl implements ChatService{
     @Override
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
         Page<ChatRoomMySql> chatRooms
-                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullOrderByStartDate(rcate1,rcate2,pageRequest);
+                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateBeforeOrderByStartDate(rcate1,rcate2,LocalDate.now(),pageRequest);
 
         List<ChatRoomDto> contents = new ArrayList<>(chatRooms.getContent().size());
         for(ChatRoomMySql chatRoom:chatRooms.getContent()){
@@ -108,6 +109,9 @@ public class ChatServiceImpl implements ChatService{
 
         List<ChatRoomDto> contents = new ArrayList<>(chatRoomPage.getContent().size());
         for(ChatRoomMySql chatRoom:chatRoomPage.getContent()){
+            if(chatRoom.getEndDate().isBefore(LocalDate.now()) || chatRoom.getDeletedAt() != null){
+                continue;
+            }
             ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
             chatRoomDto.setCurParticipant(chatRoom.getParticipants().size());
 
@@ -166,7 +170,7 @@ public class ChatServiceImpl implements ChatService{
 
 
     @Override
-    public ChatRoomServiceResult enterRoom(String roomId) {
+    public ChatRoomEnterResult enterRoom(String roomId) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
         Long userId = user.getId();
@@ -177,15 +181,16 @@ public class ChatServiceImpl implements ChatService{
         List<ChatRoomParticipant> participants = chatRoom.getParticipants();
 
         if(participants.stream().anyMatch(x->x.getUserId().equals(userId))){
-            return new ChatRoomServiceResult(roomId,userId);
+            return new ChatRoomEnterResult(roomId,userId,false);
         } else if(participants.size() < chatRoom.getMaxParticipant()){
 
             ChatRoomParticipant participant = ChatRoomParticipant.builder()
+                    .isOwner(false)
                     .chatRoomMySql(chatRoom)
                     .userId(userId)
                     .build();
             chatRoomParticipantRepository.save(participant);
-            return new ChatRoomServiceResult(roomId,userId);
+            return new ChatRoomEnterResult(roomId,userId,true);
         } else{
             throw new ChatRoomException(EXCEED_MAX_PARTICIPANTS);
         }
@@ -204,7 +209,12 @@ public class ChatServiceImpl implements ChatService{
                 chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,userId)
                                 .orElseThrow(()->new ChatRoomException(NOT_PARTICIPATED_USER));
 
-        chatRoomParticipantRepository.delete(participant);
+        if(user.equals(chatRoom.getOwner())){
+            chatRoom.delete();
+            chatRoomParticipantRepository.deleteAllByChatRoomMySql(chatRoom);
+        }else{
+            chatRoomParticipantRepository.delete(participant);
+        }
         return new ChatRoomServiceResult(roomId,userId);
     }
 
@@ -308,6 +318,15 @@ public class ChatServiceImpl implements ChatService{
         response.setFromPage(messageDtoPage,targetDate);
 
         return response;
+    }
+
+    @Override
+    public List<ChatRoomParticipantDto> getChatParticipants(String roomId) {
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository.findByIdAndDeletedAtIsNull(roomId).orElseThrow(
+                () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
+
+        return chatRoomParticipantRepository.findAllByChatRoomMySql(chatRoom)
+                .stream().map(ChatRoomParticipantDto::of).collect(Collectors.toList());
     }
 
     @Override
