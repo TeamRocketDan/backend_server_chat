@@ -455,7 +455,7 @@ public class ChatControllerTest {
     void enterRoomSuccess() throws Exception{
 
         given(chatService.enterRoom(eq("1번방"))).willReturn(
-                new ChatRoomServiceResult("1번방",1L)
+                new ChatRoomEnterResult("1번방",1L,true)
         );
 
         mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))
@@ -732,6 +732,41 @@ public class ChatControllerTest {
                 .andDo(print());
     }
 
+    @Test
+    void getParticipantsSuccess() throws Exception{
+
+        List<ChatRoomParticipantDto> result = new ArrayList<>();
+        result.add(ChatRoomParticipantDto.builder().userId(1L).isOwner(true).build());
+        result.add(ChatRoomParticipantDto.builder().userId(2L).isOwner(false).build());
+        result.add(ChatRoomParticipantDto.builder().userId(3L).isOwner(false).build());
+
+        given(chatService.getChatParticipants("1번방")).willReturn(result);
+
+        mockMvc.perform(get("/api/v1/chat/room/1번방/participants"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result[0].userId").value(1))
+                .andExpect(jsonPath("$.result[0].owner").value(true))
+                .andExpect(jsonPath("$.result[1].userId").value(2))
+                .andExpect(jsonPath("$.result[1].owner").value(false))
+                .andExpect(jsonPath("$.result[2].userId").value(3))
+                .andExpect(jsonPath("$.result[2].owner").value(false))
+                .andDo(print());
+    }
+
+    @Test
+    void getParticipantsFalse_NoChatRoom() throws Exception{
+
+        doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
+                .when(chatService).getChatParticipants(eq("1번방"));
+
+        mockMvc.perform(get("/api/v1/chat/room/1번방/participants"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.result").isEmpty())
+                .andExpect(jsonPath("$.errorMessage").value(CHAT_ROOM_NOT_FOUND.getMessage()))
+                .andDo(print());
+    }
 
     @Test
     void chatEndSuccess() throws Exception{

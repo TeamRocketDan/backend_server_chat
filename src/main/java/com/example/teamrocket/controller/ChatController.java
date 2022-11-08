@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 
 import static com.example.teamrocket.utils.ApiUtils.success;
 
@@ -63,14 +64,20 @@ public class ChatController {
     }
 
     @PatchMapping("/room-enter/{roomId}")
-    public ResponseEntity<ApiResult<ChatRoomServiceResult>> enterRoom(@PathVariable String roomId){
-        ChatRoomServiceResult result = chatService.enterRoom(roomId);
+    public ResponseEntity<ApiResult<ChatRoomEnterResult>> enterRoom(@PathVariable String roomId){
+        ChatRoomEnterResult result = chatService.enterRoom(roomId);
         return ResponseEntity.ok(success(result));
     }
 
     @PatchMapping("/room-leave/{roomId}")
     public ResponseEntity<ApiResult<ChatRoomServiceResult>> leaveRoom(@PathVariable String roomId){
         ChatRoomServiceResult result = chatService.leaveRoom(roomId);
+        return ResponseEntity.ok(success(result));
+    }
+
+    @GetMapping("/room/{roomId}/participants")
+    public ResponseEntity<ApiResult<List<ChatRoomParticipantDto>>> getParticipants(@PathVariable String roomId){
+        List<ChatRoomParticipantDto> result = chatService.getChatParticipants(roomId);
         return ResponseEntity.ok(success(result));
     }
 

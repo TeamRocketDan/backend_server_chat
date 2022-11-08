@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ChatRoomMySqlRepository extends JpaRepository<ChatRoomMySql,String> {
-    Page<ChatRoomMySql> findAllByRcate1AndRcate2AndDeletedAtIsNullOrderByStartDate(String rcate1, String rcate2, Pageable pageable);
-    Optional<ChatRoomMySql> findByIdAndDeletedAtIsNull(String id);
+    Page<ChatRoomMySql> findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(String rcate1, String rcate2, LocalDate date, Pageable pageable);
+    Optional<ChatRoomMySql> findByIdAndDeletedAtIsNullAndEndDateAfter(String id,LocalDate date);
     @Query(
             value = "SELECT * FROM chat c where c.end_date < ?1 limit 1000",
             nativeQuery = true
@@ -26,5 +26,4 @@ public interface ChatRoomMySqlRepository extends JpaRepository<ChatRoomMySql,Str
     @Modifying
     @Query("delete from ChatRoomMySql c where c in :list")
     void deleteAllByChatRoomList(@Param("list") List<ChatRoomMySql> list);
-
 }
