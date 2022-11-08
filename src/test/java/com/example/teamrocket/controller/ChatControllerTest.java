@@ -455,7 +455,7 @@ public class ChatControllerTest {
     void enterRoomSuccess() throws Exception{
 
         given(chatService.enterRoom(eq("1번방"))).willReturn(
-                new ChatRoomServiceResult("1번방",1L)
+                new ChatRoomEnterResult("1번방",1L,true)
         );
 
         mockMvc.perform(patch("/api/v1/chat/room-enter/1번방?password=1234"))

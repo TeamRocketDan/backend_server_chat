@@ -36,6 +36,7 @@ import static com.example.teamrocket.error.type.ChatRoomErrorCode.*;
 import static com.example.teamrocket.error.type.UserErrorCode.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -177,7 +178,7 @@ class ChatServiceTest {
 
 
         given(chatRoomMySqlRepository
-                .findAllByRcate1AndRcate2AndDeletedAtIsNullOrderByStartDate("서울시","동작구",pageRequest))
+                .findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateBeforeOrderByStartDate(eq("서울시"),eq("동작구"),any(),eq(pageRequest)))
                 .willReturn(chatRoomMySqlPage);
 
         //when
@@ -204,11 +205,11 @@ class ChatServiceTest {
         User user3 = User.builder().id(1L).profileImage("프로필 이미지 경로3").nickname("닉네임3").build();
 
         ChatRoomMySql room1 = ChatRoomMySql.builder()
-                .title("채팅방1").rcate1("서울시").owner(user1).participants(new ArrayList<>()).build();
+                .title("채팅방1").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
         ChatRoomMySql room2 = ChatRoomMySql.builder()
-                .title("채팅방2").rcate1("서울시").owner(user2).participants(new ArrayList<>()).build();
+                .title("채팅방2").rcate1("서울시").owner(user2).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
         ChatRoomMySql room3 = ChatRoomMySql.builder()
-                .title("채팅방3").rcate1("서울시").owner(user3).participants(new ArrayList<>()).build();
+                .title("채팅방3").rcate1("서울시").owner(user3).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
 
         List<ChatRoomParticipant> participants = new ArrayList<>();
 
