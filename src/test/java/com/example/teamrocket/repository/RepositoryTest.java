@@ -4,12 +4,15 @@ package com.example.teamrocket.repository;
 import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
+import com.example.teamrocket.config.socket.StompHandler;
 import com.example.teamrocket.service.ChatServiceImpl;
 import com.example.teamrocket.user.entity.User;
 import com.example.teamrocket.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +23,8 @@ import java.util.Optional;
 
 @SpringBootTest
 @Transactional
+@AutoConfigureMockMvc(addFilters = false)
 public class RepositoryTest {
-
     @Autowired
     private ChatRoomMySqlRepository chatRoomMySqlRepository;
     @Autowired

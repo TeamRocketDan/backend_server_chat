@@ -75,17 +75,21 @@ public class ChatController {
     }
 
     @GetMapping("/message/{roomId}")
-    public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessages(@PathVariable String roomId,
-                         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
-                         @RequestParam Integer page, @RequestParam Integer size){
+    public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessages(
+            @PathVariable String roomId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam Integer page, @RequestParam Integer size){
 
         MessagePagingResponse<MessageDto> messages = chatService.getMessages(roomId,date,page,size);
+        log.info("Messages get total "+ messages.getContent().size());
         return ResponseEntity.ok(success(messages));
     }
 
     @GetMapping("/message/mongo/{roomId}")
-    public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessagesMongo(@PathVariable String roomId
-            , @RequestParam Integer page, @RequestParam Integer size){
+    public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessagesMongo(
+            @PathVariable String roomId,
+            @RequestParam Integer page,
+            @RequestParam Integer size){
 
         MessagePagingResponse<MessageDto> messages = chatService.getMessagesMongo(roomId,page,size);
         return ResponseEntity.ok(success(messages));

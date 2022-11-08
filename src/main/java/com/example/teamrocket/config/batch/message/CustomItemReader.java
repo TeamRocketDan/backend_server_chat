@@ -1,4 +1,4 @@
-package com.example.teamrocket.config.batch;
+package com.example.teamrocket.config.batch.message;
 
 import com.example.teamrocket.chatRoom.entity.Message;
 import org.springframework.batch.core.ExitStatus;

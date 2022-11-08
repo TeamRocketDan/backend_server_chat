@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
@@ -25,13 +26,15 @@ public class RabbitChatController {
 
     @MessageMapping("chat.enter.{roomId}")
     public void enterMessage(Message message,@DestinationVariable String roomId){
+
         message.updateMessage(message.getSenderName() + "님이 채팅방에 참여하였습니다.");
         message.updateRoomIdAndCreatedAt(roomId);
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
 
     @MessageMapping("chat.message.{roomId}")
-    public void send(Message message, @DestinationVariable String roomId){
+    public void send(Message message, @DestinationVariable String roomId, @Header("Authorization") String auth){
+        System.out.println(auth);
         message.updateRoomIdAndCreatedAt(roomId);
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
