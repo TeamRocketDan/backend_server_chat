@@ -9,6 +9,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public interface ChatRoomMySqlRepository extends JpaRepository<ChatRoomMySql,String> {
-    Page<ChatRoomMySql> findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(String rcate1, String rcate2, LocalDate endDate, Pageable pageable);
-    Optional<ChatRoomMySql> findByIdAndDeletedAtIsNull(String id);
+    Page<ChatRoomMySql> findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(String rcate1, String rcate2, LocalDate date, Pageable pageable);
+    Optional<ChatRoomMySql> findByIdAndDeletedAtIsNullAndEndDateAfter(String id,LocalDate date);
 }
