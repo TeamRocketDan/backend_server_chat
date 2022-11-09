@@ -6,9 +6,6 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.TimeZone;
 
 @SpringBootApplication
@@ -18,7 +15,7 @@ public class TeamRocketApplication {
 
     @PostConstruct
     public void started(){
-        TimeZone.setDefault(TimeZone.getTimeZone("KST"));
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
     }
 
     public static void main(String[] args) {
