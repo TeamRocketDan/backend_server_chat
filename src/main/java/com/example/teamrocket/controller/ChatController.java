@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.List;
 
 import static com.example.teamrocket.utils.ApiUtils.success;
 
@@ -75,9 +74,9 @@ public class ChatController {
         return ResponseEntity.ok(success(result));
     }
 
-    @GetMapping("/room/{roomId}/participants")
-    public ResponseEntity<ApiResult<List<ChatRoomParticipantDto>>> getParticipants(@PathVariable String roomId){
-        List<ChatRoomParticipantDto> result = chatService.getChatParticipants(roomId);
+    @GetMapping("/room/info/{roomId}")
+    public ResponseEntity<ApiResult<RoomInfoDto>> getInfo(@PathVariable String roomId){
+        RoomInfoDto result = chatService.getRoomInfo(roomId);
         return ResponseEntity.ok(success(result));
     }
 
