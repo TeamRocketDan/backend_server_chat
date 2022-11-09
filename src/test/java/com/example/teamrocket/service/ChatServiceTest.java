@@ -704,7 +704,7 @@ class ChatServiceTest {
     }
 
     @Test
-    void getChatParticipantsSuccess() {
+    void getRoomInfoSuccess() {
         //given
 
         List<ChatRoomParticipant> participants = new ArrayList<>();
@@ -721,28 +721,30 @@ class ChatServiceTest {
                 .userId(3L).isOwner(false).build();
         participants.add(participant3);
 
-        ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").participants(participants).build();
+        ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").title("1번방 제목").participants(participants).build();
 
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1))).willReturn(
                 Optional.of(chatRoomMySql));
 
         //when
-        var result = chatService.getChatParticipants("1번방");
+        var result = chatService.getRoomInfo("1번방");
 
         //then
-        assertEquals(participants.size(),result.size());
-        assertEquals(1L,result.get(0).getUserId());
-        assertTrue(result.get(0).isOwner());
+        assertEquals("1번방 제목", result.getRoomTitle());
 
-        assertEquals(2L,result.get(1).getUserId());
-        assertFalse(result.get(1).isOwner());
+        assertEquals(participants.size(),result.getParticipants().size());
+        assertEquals(1L,result.getParticipants().get(0).getUserId());
+        assertTrue(result.getParticipants().get(0).isOwner());
 
-        assertEquals(3L,result.get(2).getUserId());
-        assertFalse(result.get(2).isOwner());
+        assertEquals(2L,result.getParticipants().get(1).getUserId());
+        assertFalse(result.getParticipants().get(1).isOwner());
+
+        assertEquals(3L,result.getParticipants().get(2).getUserId());
+        assertFalse(result.getParticipants().get(2).isOwner());
     }
 
     @Test
-    void getChatParticipantsFail_NoChatRoom() {
+    void getRoomInfoFail_NoChatRoom() {
         //given
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1))).willReturn(
                 Optional.empty());
@@ -750,7 +752,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getChatParticipants("1번방");
+            chatService.getRoomInfo("1번방");
         } catch (Exception e){
             assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }

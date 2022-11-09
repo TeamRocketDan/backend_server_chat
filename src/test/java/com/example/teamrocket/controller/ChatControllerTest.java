@@ -733,32 +733,35 @@ public class ChatControllerTest {
     }
 
     @Test
-    void getParticipantsSuccess() throws Exception{
+    void getRoomInfoSuccess() throws Exception{
 
-        List<ChatRoomParticipantDto> result = new ArrayList<>();
-        result.add(ChatRoomParticipantDto.builder().userId(1L).isOwner(true).build());
-        result.add(ChatRoomParticipantDto.builder().userId(2L).isOwner(false).build());
-        result.add(ChatRoomParticipantDto.builder().userId(3L).isOwner(false).build());
+        List<ChatRoomParticipantDto> participants = new ArrayList<>();
+        participants.add(ChatRoomParticipantDto.builder().userId(1L).isOwner(true).build());
+        participants.add(ChatRoomParticipantDto.builder().userId(2L).isOwner(false).build());
+        participants.add(ChatRoomParticipantDto.builder().userId(3L).isOwner(false).build());
 
-        given(chatService.getChatParticipants("1번방")).willReturn(result);
+        var result = new RoomInfoDto("1번방 제목",participants);
 
-        mockMvc.perform(get("/api/v1/chat/room/1번방/participants"))
+        given(chatService.getRoomInfo("1번방")).willReturn(result);
+
+        mockMvc.perform(get("/api/v1/chat/room/info/1번방"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.result[0].userId").value(1))
-                .andExpect(jsonPath("$.result[0].owner").value(true))
-                .andExpect(jsonPath("$.result[1].userId").value(2))
-                .andExpect(jsonPath("$.result[1].owner").value(false))
-                .andExpect(jsonPath("$.result[2].userId").value(3))
-                .andExpect(jsonPath("$.result[2].owner").value(false))
+                .andExpect(jsonPath("$.result.roomTitle").value("1번방 제목"))
+                .andExpect(jsonPath("$.result.participants[0].userId").value(1))
+                .andExpect(jsonPath("$.result.participants[0].owner").value(true))
+                .andExpect(jsonPath("$.result.participants[1].userId").value(2))
+                .andExpect(jsonPath("$.result.participants[1].owner").value(false))
+                .andExpect(jsonPath("$.result.participants[2].userId").value(3))
+                .andExpect(jsonPath("$.result.participants[2].owner").value(false))
                 .andDo(print());
     }
 
     @Test
-    void getParticipantsFalse_NoChatRoom() throws Exception{
+    void getRoomInfoFail_NoChatRoom() throws Exception{
 
         doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
-                .when(chatService).getChatParticipants(eq("1번방"));
+                .when(chatService).getRoomInfo(eq("1번방"));
 
         mockMvc.perform(get("/api/v1/chat/room/1번방/participants"))
                 .andExpect(status().isNotFound())
