@@ -28,7 +28,5 @@ public interface ChatService {
 
     MessagePagingResponse<MessageDto> getMessagesMongo(String roomId,Integer page, Integer size);
 
-    ChatRoomParticipantDto chatEnd(String roomId);
-
     PagingResponse<ChatRoomDto> myListRoom(Pageable pageRequest);
 }

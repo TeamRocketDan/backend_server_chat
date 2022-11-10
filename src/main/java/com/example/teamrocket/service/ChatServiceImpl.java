@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -345,23 +344,5 @@ public class ChatServiceImpl implements ChatService{
 
         return new RoomInfoDto(chatRoom.getTitle(),chatRoom.getParticipants()
                 .stream().map(ChatRoomParticipantDto::of).collect(Collectors.toList()));
-    }
-
-    @Override
-    public ChatRoomParticipantDto chatEnd(String roomId) {
-        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
-                ()->new UserException(USER_NOT_FOUND));
-        Long userId = user.getId();
-
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository
-                .findByIdAndDeletedAtIsNullAndEndDateAfter(roomId,LocalDate.now().minusDays(1))
-                .orElseThrow(() -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
-
-        ChatRoomParticipant participant = chatRoomParticipantRepository
-                .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
-                        () -> new ChatRoomException(NOT_PARTICIPATED_USER));
-
-        participant.setLeftAt(LocalDateTime.now());
-        return ChatRoomParticipantDto.of(participant);
     }
 }
