@@ -39,7 +39,7 @@ public class RabbitChatController {
     public void leaveMessage(@DestinationVariable String roomId,@DestinationVariable String nickname){
         Message message = Message.builder().senderName("system"+roomId).build();
         message.updateRoomIdAndCreatedAt(roomId);
-        message.updateMessage(message.getMessage() + "님이 채팅방에서 나가셨습니다.");
+        message.updateMessage(nickname + "님이 채팅방에서 나가셨습니다.");
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
 
