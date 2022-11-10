@@ -1,8 +1,12 @@
 package com.example.teamrocket;
 
+import com.example.teamrocket.chatRoom.entity.Message;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
@@ -21,5 +25,4 @@ public class TeamRocketApplication {
     public static void main(String[] args) {
         SpringApplication.run(TeamRocketApplication.class, args);
     }
-
 }

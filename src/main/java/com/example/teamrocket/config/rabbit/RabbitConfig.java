@@ -20,6 +20,7 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 
 @Configuration
 @EnableRabbit
+@Profile("dev")
 public class RabbitConfig {
 
     private static final String CHAT_QUEUE_NAME = "chat.queue";
