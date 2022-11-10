@@ -19,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -770,64 +769,4 @@ public class ChatControllerTest {
                 .andExpect(jsonPath("$.errorMessage").value(CHAT_ROOM_NOT_FOUND.getMessage()))
                 .andDo(print());
     }
-
-    @Test
-    void chatEndSuccess() throws Exception{
-
-        given(chatService.chatEnd(eq("1번방"))).willReturn(
-                ChatRoomParticipantDto.builder()
-                        .userId(1L)
-                        .leftAt(LocalDateTime.now())
-                        .build());
-
-        mockMvc.perform(patch("/api/v1/chat/chat-end/1번방"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.result.userId").value(1))
-                .andExpect(jsonPath("$.result.leftAt").isNotEmpty())
-                .andDo(print());
-    }
-
-    @Test
-    void chatEndFail_NoUser() throws Exception{
-
-        doThrow(new UserException(USER_NOT_FOUND))
-                .when(chatService).chatEnd(eq("1번방"));
-
-        mockMvc.perform(patch("/api/v1/chat/chat-end/1번방"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.result").isEmpty())
-                .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
-                .andDo(print());
-    }
-
-    @Test
-    void chatEndFail_NoChatRoom() throws Exception{
-
-        doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
-                .when(chatService).chatEnd(eq("1번방"));
-
-        mockMvc.perform(patch("/api/v1/chat/chat-end/1번방"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.result").isEmpty())
-                .andExpect(jsonPath("$.errorMessage").value(CHAT_ROOM_NOT_FOUND.getMessage()))
-                .andDo(print());
-    }
-
-    @Test
-    void chatEndFail_NotParticipatedUser() throws Exception{
-
-        doThrow(new ChatRoomException(NOT_PARTICIPATED_USER))
-                .when(chatService).chatEnd(eq("1번방"));
-
-        mockMvc.perform(patch("/api/v1/chat/chat-end/1번방"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.result").isEmpty())
-                .andExpect(jsonPath("$.errorMessage").value(NOT_PARTICIPATED_USER.getMessage()))
-                .andDo(print());
-    }
-
 }
