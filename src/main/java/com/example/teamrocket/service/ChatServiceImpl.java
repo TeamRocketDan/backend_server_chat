@@ -283,9 +283,7 @@ public class ChatServiceImpl implements ChatService{
         ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        LocalDateTime leftTime = participant.getLeftAt() == null ? participant.getCreatedAt() : participant.getLeftAt();
-
-        if(leftTime.toLocalDate().isAfter(LocalDate.now().minusDays(2))){
+        if(participant.getCreatedAt().toLocalDate().isAfter(LocalDate.now().minusDays(2))){
             throw new ChatRoomException(SHOULD_BE_OLDER_THAN_ONE_DAY_AGO);
         }
 
@@ -297,7 +295,7 @@ public class ChatServiceImpl implements ChatService{
         while(true){
             targetDate = targetDate.minusDays(1);
 
-            if(targetDate.equals(leftTime.toLocalDate())){
+            if(targetDate.equals(participant.getCreatedAt().toLocalDate())){
                 response.setLastDay(true);
             }
 
@@ -328,7 +326,7 @@ public class ChatServiceImpl implements ChatService{
         PageRequest pageRequest = PageRequest.of(page-pastPage,size);
         Page<Message> messagePage;
         if(response.isLastDay()){
-            messagePage = messageRepository.findAllByRoomIdAndCreatedAtAfter(roomId,leftTime,pageRequest);
+            messagePage = messageRepository.findAllByRoomIdAndCreatedAtAfter(roomId,participant.getCreatedAt(),pageRequest);
         }else{
             messagePage= messageRepository.findAllByRoomId(roomId, pageRequest);
         }
