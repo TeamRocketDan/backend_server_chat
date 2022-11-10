@@ -22,8 +22,8 @@ import java.util.List;
 public class ChatRoomMySql extends BaseEntity {
 
     @Id @Column(name = "chat_id")
-    @GeneratedValue(generator = "system-uuid")
-    @GenericGenerator(name="system-uuid", strategy = "uuid")
+//    @GeneratedValue(generator = "system-uuid")
+//    @GenericGenerator(name="system-uuid", strategy = "uuid")
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
