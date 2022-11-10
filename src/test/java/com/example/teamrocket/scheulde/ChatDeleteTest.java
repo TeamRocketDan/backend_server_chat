@@ -184,7 +184,6 @@ public class ChatDeleteTest {
                     ChatRoomParticipant.builder()
                             .chatRoomMySql(save)
                             .userId(list.get(i).getId())
-                            .leftAt(null)
                             .build();
             list2.add(chatRoomParticipant);
         }
