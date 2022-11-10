@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -624,7 +623,7 @@ class ChatServiceTest {
         ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
         
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).leftAt(LocalDateTime.now().minusHours(1)).chatRoomMySql(chatRoomMySql).build();
+                .userId(1L).chatRoomMySql(chatRoomMySql).build();
 
         List<Message> messages = new ArrayList<>();
 

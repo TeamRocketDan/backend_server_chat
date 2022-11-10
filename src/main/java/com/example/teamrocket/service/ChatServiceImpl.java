@@ -240,9 +240,8 @@ public class ChatServiceImpl implements ChatService{
                 .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
                         () -> new ChatRoomException(NOT_PARTICIPATED_USER));
 
-        var leftTime = participant.getLeftAt() == null ? participant.getCreatedAt() : participant.getLeftAt();
         MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
-        response.setLastDay(leftTime.toLocalDate().isEqual(date));
+        response.setLastDay(participant.getCreatedAt().toLocalDate().isEqual(date));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         String targetDateString = date.format(formatter);
@@ -254,7 +253,7 @@ public class ChatServiceImpl implements ChatService{
         }
         List<MessageDto>messageDtos;
         if(response.isLastDay()){
-            messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime))
+            messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(participant.getCreatedAt()))
                     .map(MessageDto::of).collect(Collectors.toList());
         }else{
             messageDtos = messages.stream().map(MessageDto::of).collect(Collectors.toList());

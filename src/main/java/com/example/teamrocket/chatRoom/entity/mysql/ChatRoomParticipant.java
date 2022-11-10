@@ -1,11 +1,12 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
-import lombok.*;
-
 import com.example.teamrocket.config.jpa.BaseEntity;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -25,11 +26,6 @@ public class ChatRoomParticipant extends BaseEntity {
 
     private Long userId;
     private boolean isOwner;
-    private LocalDateTime leftAt;
     private String nickname;
     private String profileImage;
-
-    public void setLeftAt(LocalDateTime leftAt){
-        this.leftAt = leftAt;
-    }
 }
