@@ -11,8 +11,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
-import java.time.LocalDateTime;
-
 
 @Controller
 @RequiredArgsConstructor
@@ -23,11 +21,11 @@ public class RabbitChatController {
     private final String CHAT_EXCHANGE_NAME = "chat.exchange";
     private final RedisTemplateRepository redisTemplateRepository;
 
+    @MessageMapping("chat.enter.{roomId}.{nickname}")
+    public void enterMessage(@DestinationVariable String roomId,@DestinationVariable String nickname){
+        Message message = Message.builder().senderName("system"+roomId).build();
+        message.updateMessage(nickname + "님이 채팅방에 참여하였습니다.");
 
-    @MessageMapping("chat.enter.{roomId}")
-    public void enterMessage(Message message,@DestinationVariable String roomId){
-
-        message.updateMessage(message.getSenderName() + "님이 채팅방에 참여하였습니다.");
         message.updateRoomIdAndCreatedAt(roomId);
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
@@ -39,11 +37,11 @@ public class RabbitChatController {
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
 
-    @MessageMapping("chat.leave.{roomId}")
-    public void leaveMessage(Message message,@DestinationVariable String roomId){
+    @MessageMapping("chat.leave.{roomId}.{nickname}")
+    public void leaveMessage(@DestinationVariable String roomId,@DestinationVariable String nickname){
+        Message message = Message.builder().senderName("system"+roomId).build();
         message.updateRoomIdAndCreatedAt(roomId);
-        message.updateMessage(message.getMessage() + "님이 채팅방에서 나가셨습니다.");
-
+        message.updateMessage(nickname + "님이 채팅방에서 나가셨습니다.");
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
     }
 

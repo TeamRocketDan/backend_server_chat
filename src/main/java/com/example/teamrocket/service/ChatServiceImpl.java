@@ -340,13 +340,13 @@ public class ChatServiceImpl implements ChatService{
 
     @Transactional(readOnly = true)
     @Override
-    public List<ChatRoomParticipantDto> getChatParticipants(String roomId) {
+    public RoomInfoDto getRoomInfo(String roomId) {
         ChatRoomMySql chatRoom = chatRoomMySqlRepository
                 .findByIdAndDeletedAtIsNullAndEndDateAfter(roomId,LocalDate.now().minusDays(1))
                 .orElseThrow(() -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        return chatRoom.getParticipants()
-                .stream().map(ChatRoomParticipantDto::of).collect(Collectors.toList());
+        return new RoomInfoDto(chatRoom.getTitle(),chatRoom.getParticipants()
+                .stream().map(ChatRoomParticipantDto::of).collect(Collectors.toList()));
     }
 
     @Override

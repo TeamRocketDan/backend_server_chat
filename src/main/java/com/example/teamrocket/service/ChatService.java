@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 public interface ChatService {
@@ -23,7 +22,7 @@ public interface ChatService {
 
     ChatRoomServiceResult leaveRoom(String roomId);
 
-    List<ChatRoomParticipantDto> getChatParticipants(String roomId);
+    RoomInfoDto getRoomInfo(String roomId);
 
     MessagePagingResponse<MessageDto> getMessages(String roomId, LocalDate date, Integer page, Integer size);
 
