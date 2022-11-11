@@ -100,11 +100,4 @@ public class ChatController {
         MessagePagingResponse<MessageDto> messages = chatService.getMessagesMongo(roomId,page,size);
         return ResponseEntity.ok(success(messages));
     }
-    @PatchMapping("/chat-end/{roomId}")
-    public ResponseEntity<ApiResult> chatEnd(@PathVariable String roomId){
-
-        ChatRoomParticipantDto participantDto = chatService.chatEnd(roomId);
-        return ResponseEntity.ok(success(participantDto));
-
-    }
 }

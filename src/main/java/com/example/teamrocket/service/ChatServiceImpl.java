@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -241,9 +240,8 @@ public class ChatServiceImpl implements ChatService{
                 .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
                         () -> new ChatRoomException(NOT_PARTICIPATED_USER));
 
-        var leftTime = participant.getLeftAt() == null ? participant.getCreatedAt() : participant.getLeftAt();
         MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
-        response.setLastDay(leftTime.toLocalDate().isEqual(date));
+        response.setLastDay(participant.getCreatedAt().toLocalDate().isEqual(date));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         String targetDateString = date.format(formatter);
@@ -255,7 +253,7 @@ public class ChatServiceImpl implements ChatService{
         }
         List<MessageDto>messageDtos;
         if(response.isLastDay()){
-            messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(leftTime))
+            messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(participant.getCreatedAt()))
                     .map(MessageDto::of).collect(Collectors.toList());
         }else{
             messageDtos = messages.stream().map(MessageDto::of).collect(Collectors.toList());
@@ -283,9 +281,7 @@ public class ChatServiceImpl implements ChatService{
         ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
                 () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-        LocalDateTime leftTime = participant.getLeftAt() == null ? participant.getCreatedAt() : participant.getLeftAt();
-
-        if(leftTime.toLocalDate().isAfter(LocalDate.now().minusDays(2))){
+        if(participant.getCreatedAt().toLocalDate().isAfter(LocalDate.now().minusDays(2))){
             throw new ChatRoomException(SHOULD_BE_OLDER_THAN_ONE_DAY_AGO);
         }
 
@@ -297,7 +293,7 @@ public class ChatServiceImpl implements ChatService{
         while(true){
             targetDate = targetDate.minusDays(1);
 
-            if(targetDate.equals(leftTime.toLocalDate())){
+            if(targetDate.equals(participant.getCreatedAt().toLocalDate())){
                 response.setLastDay(true);
             }
 
@@ -328,7 +324,7 @@ public class ChatServiceImpl implements ChatService{
         PageRequest pageRequest = PageRequest.of(page-pastPage,size);
         Page<Message> messagePage;
         if(response.isLastDay()){
-            messagePage = messageRepository.findAllByRoomIdAndCreatedAtAfter(roomId,leftTime,pageRequest);
+            messagePage = messageRepository.findAllByRoomIdAndCreatedAtAfter(roomId,participant.getCreatedAt(),pageRequest);
         }else{
             messagePage= messageRepository.findAllByRoomId(roomId, pageRequest);
         }
@@ -347,23 +343,5 @@ public class ChatServiceImpl implements ChatService{
 
         return new RoomInfoDto(chatRoom.getTitle(),chatRoom.getParticipants()
                 .stream().map(ChatRoomParticipantDto::of).collect(Collectors.toList()));
-    }
-
-    @Override
-    public ChatRoomParticipantDto chatEnd(String roomId) {
-        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
-                ()->new UserException(USER_NOT_FOUND));
-        Long userId = user.getId();
-
-        ChatRoomMySql chatRoom = chatRoomMySqlRepository
-                .findByIdAndDeletedAtIsNullAndEndDateAfter(roomId,LocalDate.now().minusDays(1))
-                .orElseThrow(() -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
-
-        ChatRoomParticipant participant = chatRoomParticipantRepository
-                .findByChatRoomMySqlAndUserId(chatRoom, userId).orElseThrow(
-                        () -> new ChatRoomException(NOT_PARTICIPATED_USER));
-
-        participant.setLeftAt(LocalDateTime.now());
-        return ChatRoomParticipantDto.of(participant);
     }
 }

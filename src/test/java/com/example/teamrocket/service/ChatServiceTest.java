@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -624,7 +623,7 @@ class ChatServiceTest {
         ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
         
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).leftAt(LocalDateTime.now().minusHours(1)).chatRoomMySql(chatRoomMySql).build();
+                .userId(1L).chatRoomMySql(chatRoomMySql).build();
 
         List<Message> messages = new ArrayList<>();
 
@@ -757,69 +756,4 @@ class ChatServiceTest {
             assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
-
-    @Test
-    void chatEndSuccess() {
-        //given
-        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
-        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
-
-        ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).chatRoomMySql(chatRoomMySql).build();
-
-        given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1))).willReturn(
-                Optional.of(chatRoomMySql));
-        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
-                .willReturn(Optional.of(participant1));
-
-
-        //when
-        var result = chatService.chatEnd("1번방");
-
-        //then
-        assertNotNull(result.getLeftAt());
-    }
-
-    @Test
-    void chatEndFail_NoChatRoom() {
-        //given
-        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
-        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
-
-        given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1))).willReturn(
-                Optional.empty());
-        
-        //when
-        //then
-        try{
-            chatService.chatEnd("1번방");
-        }catch (Exception e){
-            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
-        }
-
-    }
-
-    @Test
-    void chatEndFail_NotParticipated() {
-        //given
-        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
-        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(User.builder().id(1L).build()));
-
-        ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
-
-        given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1))).willReturn(
-                Optional.of(chatRoomMySql));
-        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,1L))
-                .willReturn(Optional.empty());
-
-
-        //when
-        //then
-        try{
-            chatService.chatEnd("1번방");
-        }catch (Exception e){
-            assertEquals(NOT_PARTICIPATED_USER.getMessage(),e.getMessage());
-        }
-    }
-
 }
