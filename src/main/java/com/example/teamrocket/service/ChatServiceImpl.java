@@ -101,17 +101,12 @@ public class ChatServiceImpl implements ChatService{
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
 
-        Page<ChatRoomParticipant> participantPage =
-                chatRoomParticipantRepository.findAllByUserId(user.getId(), pageRequest);
-
         Page<ChatRoomMySql> chatRoomPage =
-                participantPage.map(ChatRoomParticipant::getChatRoomMySql);
+                chatRoomMySqlRepository
+                        .findAllByUserIdAndAndDeletedAtIsNullAndEndDateAfterOrderByStartDate(user, LocalDate.now().minusDays(1),pageRequest);
 
         List<ChatRoomDto> contents = new ArrayList<>(chatRoomPage.getContent().size());
         for(ChatRoomMySql chatRoom:chatRoomPage.getContent()){
-            if(chatRoom.getEndDate().isBefore(LocalDate.now()) || chatRoom.getDeletedAt() != null){
-                continue;
-            }
             ChatRoomDto chatRoomDto = ChatRoomDto.of(chatRoom);
             chatRoomDto.setCurParticipant(chatRoom.getParticipants().size());
 
