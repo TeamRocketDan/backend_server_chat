@@ -3,18 +3,14 @@ package com.example.teamrocket.dbTest;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
-import com.example.teamrocket.config.rabbit.RabbitConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -51,7 +47,7 @@ public class RedisTest {
     public void test() throws Exception{
         String roomId = "abcd";
         Message build = Message.builder()
-                .senderName("holy")
+                .userId(3L)
                 .build();
 
         ChatRoomEditInput build1 = ChatRoomEditInput.builder()
@@ -67,7 +63,7 @@ public class RedisTest {
     @DisplayName("redis expire date init")
     public void redisInitExpireDateTest() throws Exception{
         Message build = Message.builder()
-                .senderName("TeamRocket")
+                .userId(2L)
                 .message("Welcome Message")
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -91,7 +87,7 @@ public class RedisTest {
         int sizeTest = 100;
         for (int i = 0; i < sizeTest; i++) {
             Message build = Message.builder()
-                    .senderName("TeamRocket")
+                    .userId(3L)
                     .message("Welcome Message" + i)
                     .createdAt(LocalDateTime.now())
                     .build();
@@ -134,7 +130,7 @@ public class RedisTest {
             List<Message> messages = new ArrayList<>();
             for(int i=0; i<Integer.parseInt(substring)*100;i++){
                 messages.add(Message.builder()
-                        .senderName("SomePerson")
+                                .userId(5L)
                         .message("Test Message "+ i)
                         .build());
             }

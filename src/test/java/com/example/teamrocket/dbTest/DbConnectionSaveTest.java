@@ -47,14 +47,14 @@ public class DbConnectionSaveTest {
     void saveRedisTest() throws Exception{
         String roomId = "roomIdTest";
         Message m1 = Message.builder()
-                .senderName("로사")
+                .userId(1L)
                 .message("우리가 누군지 물으신다면 나 로사")
                 .createdAt(LocalDateTime.now())
                 .build();
         redisTemplateRepository.saveToLeft(roomId,m1);
 
         Message m2 = Message.builder()
-                .senderName("로이")
+                .userId(1L)
                 .message("나 로이")
                 .createdAt(LocalDateTime.now())
                 .build();

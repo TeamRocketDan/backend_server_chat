@@ -3,9 +3,7 @@ package com.example.teamrocket.dbTest;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
 import com.example.teamrocket.chatRoom.entity.DayOfMessages;
 import com.example.teamrocket.chatRoom.entity.Message;
-import org.assertj.core.api.Assertions;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @SpringBootTest
@@ -62,7 +60,7 @@ public class MongodbTest {
         for (int i = 0; i < 4; i++) {
             Message m = Message.builder()
                     .message("HolyMoly "+i)
-                    .senderName("abc "+i)
+                    .userId(1L)
                     .createdAt(LocalDateTime.now())
                     .build();
             mongoTemplate.save(m);
