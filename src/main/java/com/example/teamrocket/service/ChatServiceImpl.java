@@ -66,9 +66,7 @@ public class ChatServiceImpl implements ChatService{
         ChatRoomParticipant participant = ChatRoomParticipant.builder()
                 .chatRoomMySql(chatRoom)
                 .isOwner(true)
-                .userId(user.getId())
-                .nickname(user.getNickname())
-                .profileImage(user.getProfileImage())
+                .user(user)
                 .build();
 
         chatRoomParticipantRepository.save(participant);
@@ -176,7 +174,6 @@ public class ChatServiceImpl implements ChatService{
     public ChatRoomEnterResult enterRoom(String roomId) {
         User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
                 ()->new UserException(USER_NOT_FOUND));
-        Long userId = user.getId();
 
         ChatRoomMySql chatRoom = chatRoomMySqlRepository
                 .findByIdAndDeletedAtIsNullAndEndDateAfter(roomId,LocalDate.now().minusDays(1))
@@ -184,19 +181,17 @@ public class ChatServiceImpl implements ChatService{
 
         List<ChatRoomParticipant> participants = chatRoom.getParticipants();
 
-        if(participants.stream().anyMatch(x->x.getUserId().equals(userId))){
-            return new ChatRoomEnterResult(roomId,userId,false);
+        if(participants.stream().anyMatch(x->x.getUser().equals(user))){
+            return new ChatRoomEnterResult(roomId,user.getId(),false);
         } else if(participants.size() < chatRoom.getMaxParticipant()){
 
             ChatRoomParticipant participant = ChatRoomParticipant.builder()
                     .isOwner(false)
                     .chatRoomMySql(chatRoom)
-                    .userId(userId)
-                    .nickname(user.getNickname())
-                    .profileImage(user.getProfileImage())
+                    .user(user)
                     .build();
             chatRoomParticipantRepository.save(participant);
-            return new ChatRoomEnterResult(roomId,userId,true);
+            return new ChatRoomEnterResult(roomId,user.getId(),true);
         } else{
             throw new ChatRoomException(EXCEED_MAX_PARTICIPANTS);
         }

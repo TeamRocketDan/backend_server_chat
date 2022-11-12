@@ -1,6 +1,7 @@
 package com.example.teamrocket.chatRoom.domain;
 
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
+import com.example.teamrocket.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,11 +17,13 @@ public class ChatRoomParticipantDto {
     private String profileImage;
 
     public static ChatRoomParticipantDto of(ChatRoomParticipant participant){
+        User user = participant.getUser();
+
         return ChatRoomParticipantDto.builder()
-                .userId(participant.getUserId())
+                .userId(user.getId())
                 .isOwner(participant.isOwner())
-                .nickname(participant.getNickname())
-                .profileImage(participant.getProfileImage())
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
                 .build();
     }
 }
