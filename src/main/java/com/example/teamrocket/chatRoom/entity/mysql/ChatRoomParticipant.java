@@ -1,6 +1,7 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
 import com.example.teamrocket.config.jpa.BaseEntity;
+import com.example.teamrocket.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,8 +25,9 @@ public class ChatRoomParticipant extends BaseEntity {
     @JoinColumn(name = "chat_id")
     private ChatRoomMySql chatRoomMySql;
 
-    private Long userId;
     private boolean isOwner;
-    private String nickname;
-    private String profileImage;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
 }
