@@ -20,10 +20,11 @@ public class RabbitChatController {
     private final RabbitTemplate template;
     private final String CHAT_EXCHANGE_NAME = "chat.exchange";
     private final RedisTemplateRepository redisTemplateRepository;
+    private final Long systemUserId = 666L;
 
     @MessageMapping("chat.enter.{roomId}.{nickname}")
     public void enterMessage(@DestinationVariable String roomId,@DestinationVariable String nickname){
-        Message message = Message.builder().senderName("system"+roomId).build();
+        Message message = Message.builder().userId(systemUserId).build();
         message.updateMessage(nickname + "님이 채팅방에 참여하였습니다.");
 
         message.updateRoomIdAndCreatedAt(roomId);
@@ -39,7 +40,7 @@ public class RabbitChatController {
 
     @MessageMapping("chat.leave.{roomId}.{nickname}")
     public void leaveMessage(@DestinationVariable String roomId,@DestinationVariable String nickname){
-        Message message = Message.builder().senderName("system"+roomId).build();
+        Message message = Message.builder().userId(systemUserId).build();
         message.updateRoomIdAndCreatedAt(roomId);
         message.updateMessage(nickname + "님이 채팅방에서 나가셨습니다.");
         template.convertAndSend(CHAT_EXCHANGE_NAME,"room."+roomId,message);
