@@ -43,11 +43,15 @@ public class MessagePagingResponse<MessageDto> {
         this.lastDay = isLastDay;
     }
 
-    public void setFromList(List<MessageDto> list, Integer size,LocalDate targetDay){
+    public void setFromList(List<MessageDto> list, LocalDate targetDay,boolean isFirstPage,Integer size, int totalPage,
+                            int totalElements, int currentPage){
         this.targetDay = targetDay;
-        this.size = size;
-        this.content = list;
+        this.firstPage = isFirstPage;
         this.lastPage = list.size() != size;
-
+        this.targetDayTotalPage = totalPage;
+        this.targetDayTotalElements = totalElements;
+        this.size = size;
+        this.targetDayCurrentPage = currentPage;
+        this.content = list;
     }
 }
