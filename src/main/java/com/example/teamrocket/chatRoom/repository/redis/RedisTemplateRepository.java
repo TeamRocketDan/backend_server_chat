@@ -84,4 +84,8 @@ public class RedisTemplateRepository {
     public List<Message> getMessage(String roomId, int page, int size){
         return redisTemplate.opsForList().range(roomId, page *size, ((page + 1) *size)-1);
     }
+
+    public Long getMessageSize(String roomId){
+        return redisTemplate.opsForList().size(roomId);
+    }
 }

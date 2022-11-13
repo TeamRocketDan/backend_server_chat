@@ -6,8 +6,6 @@ import com.example.teamrocket.utils.PagingResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-
 @Service
 public interface ChatService {
     ChatRoomDto createRoom(ChatRoomCreateInput param);
@@ -24,9 +22,7 @@ public interface ChatService {
 
     RoomInfoDto getRoomInfo(String roomId);
 
-    MessagePagingResponse<MessageDto> getMessages(String roomId, LocalDate date, Integer page, Integer size);
-
-    MessagePagingResponse<MessageDto> getMessagesMongo(String roomId,Integer page, Integer size);
+    MessagePagingResponse<MessageDto> getMessages(String roomId,Integer page, Integer size);
 
     PagingResponse<ChatRoomDto> myListRoom(Pageable pageRequest);
 }

@@ -8,12 +8,10 @@ import com.example.teamrocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 
 import static com.example.teamrocket.utils.ApiUtils.success;
 
@@ -83,21 +81,10 @@ public class ChatController {
     @GetMapping("/message/{roomId}")
     public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessages(
             @PathVariable String roomId,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
             @RequestParam Integer page, @RequestParam Integer size){
 
-        MessagePagingResponse<MessageDto> messages = chatService.getMessages(roomId,date,page,size);
+        MessagePagingResponse<MessageDto> messages = chatService.getMessages(roomId,page,size);
         log.info("Messages get total "+ messages.getContent().size());
-        return ResponseEntity.ok(success(messages));
-    }
-
-    @GetMapping("/message/mongo/{roomId}")
-    public ResponseEntity<ApiResult<MessagePagingResponse<MessageDto>>> getMessagesMongo(
-            @PathVariable String roomId,
-            @RequestParam Integer page,
-            @RequestParam Integer size){
-
-        MessagePagingResponse<MessageDto> messages = chatService.getMessagesMongo(roomId,page,size);
         return ResponseEntity.ok(success(messages));
     }
 }

@@ -646,7 +646,7 @@ class ChatServiceTest {
 
 
         //when
-        var results = chatService.getMessages("1번방",LocalDate.now(),0,5);
+        var results = chatService.getMessages("1번방",0,5);
 
         //then
         assertEquals(LocalDate.now(),results.getTargetDay());
@@ -670,7 +670,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getMessages("1번방", LocalDate.now(),10,10);
+            chatService.getMessages("1번방",10,10);
         }catch (Exception e){
             assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
         }
@@ -693,7 +693,7 @@ class ChatServiceTest {
         //when
         //then
         try{
-            chatService.getMessages("1번방", LocalDate.now(),10,10);
+            chatService.getMessages("1번방", 10,10);
         }catch (Exception e){
             assertEquals(NOT_PARTICIPATED_USER.getMessage(),e.getMessage());
         }
