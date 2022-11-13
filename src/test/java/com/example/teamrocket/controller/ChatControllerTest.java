@@ -573,91 +573,6 @@ public class ChatControllerTest {
                 .andExpect(jsonPath("$.errorMessage").value(NOT_PARTICIPATED_USER.getMessage()))
                 .andDo(print());
     }
-
-    @Test
-    void getMessagesSuccess() throws Exception{
-
-        MessagePagingResponse response = MessagePagingResponse.builder()
-                .lastDay(false)
-                .targetDay(LocalDate.now())
-                .firstPage(true)
-                .lastPage(false)
-                .targetDayTotalPage(20)
-                .targetDayTotalElements(100)
-                .size(5)
-                .targetDayCurrentPage(0)
-                .content(new ArrayList<>())
-                .build();
-
-        given(chatService.getMessages(eq("1번방"),eq(LocalDate.now()),eq(0),eq(5))).willReturn(
-                response);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        mockMvc.perform(get("/api/v1/chat/message/1번방?date="+formatter.format(LocalDate.now())+"&page=0&size=5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.result.lastDay").value(false))
-                .andExpect(jsonPath("$.result.targetDay").isNotEmpty())
-                .andExpect(jsonPath("$.result.firstPage").value(true))
-                .andExpect(jsonPath("$.result.lastPage").value(false))
-                .andExpect(jsonPath("$.result.targetDayTotalPage").value(20))
-                .andExpect(jsonPath("$.result.targetDayTotalElements").value(100))
-                .andExpect(jsonPath("$.result.size").value(5))
-                .andExpect(jsonPath("$.result.targetDayCurrentPage").value(0))
-                .andDo(print());
-    }
-
-    @Test
-    void getMessagesFail_NoUser() throws Exception{
-
-        doThrow(new UserException(USER_NOT_FOUND))
-                .when(chatService).getMessages(eq("1번방"),eq(LocalDate.now()),eq(0),eq(5));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        mockMvc.perform(get("/api/v1/chat/message/1번방?date="+formatter.format(LocalDate.now())+"&page=0&size=5"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.result").isEmpty())
-                .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
-                .andDo(print());
-    }
-
-    @Test
-    void getMessagesFail_NoChatRoom() throws Exception{
-
-        doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
-                .when(chatService).getMessages(eq("1번방"),eq(LocalDate.now()),eq(0),eq(5));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-
-        mockMvc.perform(get("/api/v1/chat/message/1번방?date="+formatter.format(LocalDate.now())+"&page=0&size=5"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.result").isEmpty())
-                .andExpect(jsonPath("$.errorMessage").value(CHAT_ROOM_NOT_FOUND.getMessage()))
-                .andDo(print());
-    }
-
-    @Test
-    void getMessagesFail_NotParticipatedUser() throws Exception{
-
-        doThrow(new ChatRoomException(NOT_PARTICIPATED_USER))
-                .when(chatService).getMessages(eq("1번방"),eq(LocalDate.now()),eq(0),eq(5));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-
-        mockMvc.perform(get("/api/v1/chat/message/1번방?date="+formatter.format(LocalDate.now())+"&page=0&size=5"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.result").isEmpty())
-                .andExpect(jsonPath("$.errorMessage").value(NOT_PARTICIPATED_USER.getMessage()))
-                .andDo(print());
-    }
-
         @Test
     void getMessagesMongoSuccess() throws Exception{
 
@@ -672,10 +587,10 @@ public class ChatControllerTest {
                 .targetDayCurrentPage(0)
                 .content(new ArrayList<>())
                 .build();
-        given(chatService.getMessagesMongo(eq("1번방"),eq(0),eq(5))).willReturn(
+        given(chatService.getMessages(eq("1번방"),eq(0),eq(5))).willReturn(
             response);
 
-        mockMvc.perform(get("/api/v1/chat/message/mongo/1번방?&page=0&size=5"))
+        mockMvc.perform(get("/api/v1/chat/message/1번방?&page=0&size=5"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.result.lastDay").value(false))
@@ -693,9 +608,9 @@ public class ChatControllerTest {
     void getMessagesMongoFail_NoUser() throws Exception{
 
         doThrow(new UserException(USER_NOT_FOUND))
-                .when(chatService).getMessagesMongo(eq("1번방"),eq(0),eq(5));
+                .when(chatService).getMessages(eq("1번방"),eq(0),eq(5));
 
-        mockMvc.perform(get("/api/v1/chat/message/mongo/1번방?&page=0&size=5"))
+        mockMvc.perform(get("/api/v1/chat/message/1번방?&page=0&size=5"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.result").isEmpty())
@@ -707,9 +622,9 @@ public class ChatControllerTest {
     void getMessagesMongoFail_NoChatRoom() throws Exception{
 
         doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
-                .when(chatService).getMessagesMongo(eq("1번방"),eq(0),eq(5));
+                .when(chatService).getMessages(eq("1번방"),eq(0),eq(5));
 
-        mockMvc.perform(get("/api/v1/chat/message/mongo/1번방?&page=0&size=5"))
+        mockMvc.perform(get("/api/v1/chat/message/1번방?&page=0&size=5"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.result").isEmpty())
@@ -721,9 +636,9 @@ public class ChatControllerTest {
     void getMessagesMongoFail_NotParticipatedUser() throws Exception{
 
         doThrow(new ChatRoomException(NOT_PARTICIPATED_USER))
-                .when(chatService).getMessagesMongo(eq("1번방"),eq(0),eq(5));
+                .when(chatService).getMessages(eq("1번방"),eq(0),eq(5));
 
-        mockMvc.perform(get("/api/v1/chat/message/mongo/1번방?&page=0&size=5"))
+        mockMvc.perform(get("/api/v1/chat/message/1번방?&page=0&size=5"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.result").isEmpty())
