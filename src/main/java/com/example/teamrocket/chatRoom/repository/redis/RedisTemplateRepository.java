@@ -23,7 +23,7 @@ public class RedisTemplateRepository {
     private RedisTemplate<String, Message> redisTemplate;
     public void setExpireDateOnRoom(String roomId, LocalDateTime endDate){
         Message welcome = Message.builder()
-                .senderName("TeamRocket")
+                .userId(1L)
                 .message("Welcome !")
                 .createdAt(LocalDateTime.now())
                 .build();

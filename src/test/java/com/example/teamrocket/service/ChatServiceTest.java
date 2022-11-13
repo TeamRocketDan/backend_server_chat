@@ -98,9 +98,8 @@ class ChatServiceTest {
 
         verify(chatRoomParticipantRepository,times(1)).save(participantCaptor.capture());
         ChatRoomParticipant chatRoomParticipantCaptured = participantCaptor.getValue();
-        assertEquals(1L,chatRoomParticipantCaptured.getUserId());
         assertEquals(chatRoomMySqlCaptured,chatRoomParticipantCaptured.getChatRoomMySql());
-        assertEquals(1L,chatRoomParticipantCaptured.getUserId());
+        assertEquals(1L,chatRoomParticipantCaptured.getUser().getId());
         assertTrue(chatRoomParticipantCaptured.isOwner());
 
     }
@@ -202,26 +201,24 @@ class ChatServiceTest {
     void myListRoomSuccess() {
         //given
         User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
-        User user2 = User.builder().id(1L).profileImage("프로필 이미지 경로2").nickname("닉네임2").build();
-        User user3 = User.builder().id(1L).profileImage("프로필 이미지 경로3").nickname("닉네임3").build();
 
         ChatRoomMySql room1 = ChatRoomMySql.builder()
                 .title("채팅방1").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
         ChatRoomMySql room2 = ChatRoomMySql.builder()
-                .title("채팅방2").rcate1("서울시").owner(user2).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
+                .title("채팅방2").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
         ChatRoomMySql room3 = ChatRoomMySql.builder()
-                .title("채팅방3").rcate1("서울시").owner(user3).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
+                .title("채팅방3").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
 
         List<ChatRoomParticipant> participants = new ArrayList<>();
 
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                        .chatRoomMySql(room1).userId(1L).build();
+                        .chatRoomMySql(room1).user(user1).build();
 
         ChatRoomParticipant participant2 = ChatRoomParticipant.builder()
-                .chatRoomMySql(room2).userId(1L).build();
+                .chatRoomMySql(room2).user(user1).build();
 
         ChatRoomParticipant participant3 = ChatRoomParticipant.builder()
-                .chatRoomMySql(room3).userId(1L).build();
+                .chatRoomMySql(room3).user(user1).build();
 
         participants.add(participant1);
         participants.add(participant2);
@@ -248,8 +245,8 @@ class ChatServiceTest {
 
         assertEquals("채팅방2",results.getContent().get(1).getTitle());
         assertEquals(0,results.getContent().get(1).getCurParticipant());
-        assertEquals("프로필 이미지 경로2",results.getContent().get(1).getOwnerProfileImage());
-        assertEquals("닉네임2",results.getContent().get(1).getOwnerNickName());
+        assertEquals("프로필 이미지 경로1",results.getContent().get(1).getOwnerProfileImage());
+        assertEquals("닉네임1",results.getContent().get(1).getOwnerNickName());
     }
 
     @Test
@@ -480,7 +477,7 @@ class ChatServiceTest {
         verify(chatRoomParticipantRepository,times(1)).save(captor.capture());
         ChatRoomParticipant chatRoomParticipantCaptured = captor.getValue();
         assertEquals(chatRoom,chatRoomParticipantCaptured.getChatRoomMySql());
-        assertEquals(3L,chatRoomParticipantCaptured.getUserId());
+        assertEquals(3L,chatRoomParticipantCaptured.getUser().getId());
         assertFalse(chatRoomParticipantCaptured.isOwner());
         assertEquals(chatRoom.getId(),result.getChatRoomId());
         assertEquals(3L,result.getUserId());
@@ -495,7 +492,7 @@ class ChatServiceTest {
         given(userRepository.findByUuid("uuid")).willReturn(Optional.of(user));
 
         List<ChatRoomParticipant> participants = new ArrayList<>();
-        participants.add(ChatRoomParticipant.builder().userId(3L).build());
+        participants.add(ChatRoomParticipant.builder().user(user).build());
         ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").participants(participants)
                 .maxParticipant(3)
                 .build();
@@ -520,11 +517,11 @@ class ChatServiceTest {
 
         List<ChatRoomParticipant> participants = new ArrayList<>();
 
-        ChatRoomParticipant participant1 = ChatRoomParticipant.builder().userId(1L)
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder().user(User.builder().id(1L).build())
                 .build();
         participants.add(participant1);
 
-        ChatRoomParticipant participant2 = ChatRoomParticipant.builder().userId(2L)
+        ChatRoomParticipant participant2 = ChatRoomParticipant.builder().user(User.builder().id(1L).build())
                 .build();
         participants.add(participant2);
 
@@ -554,7 +551,7 @@ class ChatServiceTest {
                 .build();
 
 
-        ChatRoomParticipant participant1 = ChatRoomParticipant.builder().userId(1L)
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder().user(User.builder().id(1L).build())
                 .chatRoomMySql(chatRoom).build();
 
         given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1))).willReturn(
@@ -570,7 +567,7 @@ class ChatServiceTest {
         //then
         verify(chatRoomParticipantRepository,times(1)).delete(captor.capture());
         ChatRoomParticipant capturedChatRoomParticipant = captor.getValue();
-        assertEquals(1L,capturedChatRoomParticipant.getUserId());
+        assertEquals(1L,capturedChatRoomParticipant.getUser().getId());
         assertEquals("1번방",capturedChatRoomParticipant.getChatRoomMySql().getId());
     }
 
@@ -623,7 +620,7 @@ class ChatServiceTest {
         ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
         
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).chatRoomMySql(chatRoomMySql).build();
+                .user(User.builder().id(1L).build()).chatRoomMySql(chatRoomMySql).build();
 
         List<Message> messages = new ArrayList<>();
 
@@ -709,15 +706,15 @@ class ChatServiceTest {
         List<ChatRoomParticipant> participants = new ArrayList<>();
 
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder()
-                .userId(1L).isOwner(true).build();
+                .user(User.builder().id(1L).build()).isOwner(true).build();
         participants.add(participant1);
 
         ChatRoomParticipant participant2 = ChatRoomParticipant.builder()
-                .userId(2L).isOwner(false).build();
+                .user(User.builder().id(2L).build()).isOwner(false).build();
         participants.add(participant2);
 
         ChatRoomParticipant participant3 = ChatRoomParticipant.builder()
-                .userId(3L).isOwner(false).build();
+                .user(User.builder().id(3L).build()).isOwner(false).build();
         participants.add(participant3);
 
         ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").title("1번방 제목").participants(participants).build();

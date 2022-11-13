@@ -762,7 +762,7 @@ public class ChatControllerTest {
         doThrow(new ChatRoomException(CHAT_ROOM_NOT_FOUND))
                 .when(chatService).getRoomInfo(eq("1번방"));
 
-        mockMvc.perform(get("/api/v1/chat/room/1번방/participants"))
+        mockMvc.perform(get("/api/v1/chat/room/info/1번방"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.result").isEmpty())

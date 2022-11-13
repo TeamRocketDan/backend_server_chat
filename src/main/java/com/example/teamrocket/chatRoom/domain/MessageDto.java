@@ -13,15 +13,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class MessageDto {
-    private String senderName;
-    private String senderImgSrc;
+    private Long userId;
     private String message;
     private LocalDateTime createdAt;
 
     public static MessageDto of(Message message){
         return MessageDto.builder()
-                .senderName(message.getSenderName())
-                .senderImgSrc(message.getSenderImgSrc())
+                .userId(message.getUserId())
                 .message(message.getMessage())
                 .createdAt(message.getCreatedAt()).build();
     }

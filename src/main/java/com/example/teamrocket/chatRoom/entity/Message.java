@@ -23,8 +23,7 @@ public class Message implements Serializable {
     private String id;
 
     private String roomId;
-    private String senderName;
-    private String senderImgSrc;
+    private Long userId;
     private String message;
     private LocalDateTime createdAt;
 
