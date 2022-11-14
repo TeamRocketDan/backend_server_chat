@@ -25,6 +25,8 @@ public class Message implements Serializable {
     private String roomId;
     private Long userId;
     private String message;
+    private String profileImage;
+    private String senderName;
     private LocalDateTime createdAt;
 
     public void updateRoomIdAndCreatedAt(String id){
