@@ -15,11 +15,15 @@ import java.time.LocalDateTime;
 public class MessageDto {
     private Long userId;
     private String message;
+    private String profileImage;
+    private String senderName;
     private LocalDateTime createdAt;
 
     public static MessageDto of(Message message){
         return MessageDto.builder()
                 .userId(message.getUserId())
+                .profileImage(message.getProfileImage())
+                .senderName(message.getSenderName())
                 .message(message.getMessage())
                 .createdAt(message.getCreatedAt()).build();
     }
