@@ -32,7 +32,7 @@ public class ChatController {
 
     @GetMapping("/room-list")
     public ResponseEntity<ApiResult<PagingResponse<ChatRoomDto>>> roomList(@RequestParam Integer page, @RequestParam Integer size,
-                                                        @RequestParam String rcate1, @RequestParam String rcate2){
+                                                        @RequestParam(required = false) String rcate1, @RequestParam(required = false) String rcate2){
         PageRequest pageRequest = PageRequest.of(page,size);
         PagingResponse<ChatRoomDto> results = chatService.listRoom(rcate1,rcate2,pageRequest);
         return ResponseEntity.ok(success(results));
