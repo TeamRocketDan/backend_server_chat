@@ -78,10 +78,10 @@ public class ChatServiceImpl implements ChatService{
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
         Page<ChatRoomMySql> chatRooms;
 
-        if(rcate1 == null && rcate2 == null){
+        if(rcate1.isEmpty() && rcate2.isEmpty()){
             chatRooms = chatRoomMySqlRepository.findAllByDeletedAtIsNullAndEndDateAfterOrderByStartDate(
                     LocalDate.now().minusDays(1),pageRequest);
-        }else if(rcate1 != null && rcate2 != null){
+        }else if(!rcate1.isEmpty() && !rcate2.isEmpty()){
             chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(
                     rcate1,rcate2,LocalDate.now().minusDays(1),pageRequest);
         }else{
