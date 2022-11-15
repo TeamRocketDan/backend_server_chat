@@ -79,7 +79,7 @@ public class ChatServiceImpl implements ChatService{
         Page<ChatRoomMySql> chatRooms;
 
         if(rcate1 == null && rcate2 == null){
-            chatRooms = chatRoomMySqlRepository.findAllDeletedAtIsNullAndEndDateAfterOrderByStartDate(
+            chatRooms = chatRoomMySqlRepository.findAllByDeletedAtIsNullAndEndDateAfterOrderByStartDate(
                     LocalDate.now().minusDays(1),pageRequest);
         }else if(rcate1 != null && rcate2 != null){
             chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(
