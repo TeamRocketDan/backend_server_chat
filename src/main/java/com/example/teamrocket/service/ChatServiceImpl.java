@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -78,10 +79,10 @@ public class ChatServiceImpl implements ChatService{
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
         Page<ChatRoomMySql> chatRooms;
 
-        if(rcate1.isEmpty() && rcate2.isEmpty()){
+        if(ObjectUtils.isEmpty(rcate1) && ObjectUtils.isEmpty(rcate2)){
             chatRooms = chatRoomMySqlRepository.findAllByDeletedAtIsNullAndEndDateAfterOrderByStartDate(
                     LocalDate.now().minusDays(1),pageRequest);
-        }else if(!rcate1.isEmpty() && !rcate2.isEmpty()){
+        }else if(!ObjectUtils.isEmpty(rcate1) && !ObjectUtils.isEmpty(rcate2)){
             chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(
                     rcate1,rcate2,LocalDate.now().minusDays(1),pageRequest);
         }else{
