@@ -76,9 +76,17 @@ public class ChatServiceImpl implements ChatService{
     @Transactional(readOnly = true)
     @Override
     public PagingResponse<ChatRoomDto> listRoom(String rcate1, String rcate2, Pageable pageRequest) {
-        Page<ChatRoomMySql> chatRooms
-                = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(
-                        rcate1,rcate2,LocalDate.now().minusDays(1),pageRequest);
+        Page<ChatRoomMySql> chatRooms;
+
+        if(rcate1 == null && rcate2 == null){
+            chatRooms = chatRoomMySqlRepository.findAllDeletedAtIsNullAndEndDateAfterOrderByStartDate(
+                    LocalDate.now().minusDays(1),pageRequest);
+        }else if(rcate1 != null && rcate2 != null){
+            chatRooms = chatRoomMySqlRepository.findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(
+                    rcate1,rcate2,LocalDate.now().minusDays(1),pageRequest);
+        }else{
+            throw new ChatRoomException(INVALID_SEARCH_CONDITION);
+        }
 
         List<ChatRoomDto> contents = new ArrayList<>(chatRooms.getContent().size());
         for(ChatRoomMySql chatRoom:chatRooms.getContent()){

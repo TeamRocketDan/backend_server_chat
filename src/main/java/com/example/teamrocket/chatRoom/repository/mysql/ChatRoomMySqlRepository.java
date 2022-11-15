@@ -15,6 +15,7 @@ import java.util.Optional;
 
 public interface ChatRoomMySqlRepository extends JpaRepository<ChatRoomMySql,String> {
     Page<ChatRoomMySql> findAllByRcate1AndRcate2AndDeletedAtIsNullAndEndDateAfterOrderByStartDate(String rcate1, String rcate2, LocalDate date, Pageable pageable);
+    Page<ChatRoomMySql> findAllDeletedAtIsNullAndEndDateAfterOrderByStartDate(LocalDate minusDays, Pageable pageRequest);
     Optional<ChatRoomMySql> findByIdAndDeletedAtIsNullAndEndDateAfter(String id,LocalDate date);
 
     @Query(value = "SELECT c FROM ChatRoomMySql c " +
