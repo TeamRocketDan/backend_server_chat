@@ -30,6 +30,8 @@ public class ChatRoomDto {
     private String longitude;
     private String latitude;
 
+    private boolean newMessage;
+
     public static ChatRoomDto of(ChatRoomMySql chatRoom){
         return ChatRoomDto.builder()
                 .id(chatRoom.getId())
@@ -51,5 +53,9 @@ public class ChatRoomDto {
     public void setOwnerInfo(String ownerNickName, String ownerProfileImage){
         this.ownerNickName = ownerNickName;
         this.ownerProfileImage = ownerProfileImage;
+    }
+
+    public void setNewMessage(boolean newMessage){
+        this.newMessage = newMessage;
     }
 }

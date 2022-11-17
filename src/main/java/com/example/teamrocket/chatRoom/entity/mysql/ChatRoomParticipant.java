@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -30,4 +31,9 @@ public class ChatRoomParticipant extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private LocalDateTime lastMessageTime;
+
+    public void setLastMessageTime(LocalDateTime lastMessageTime) {
+        this.lastMessageTime = lastMessageTime;
+    }
 }
