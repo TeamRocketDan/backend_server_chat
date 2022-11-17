@@ -386,7 +386,7 @@ public class ChatServiceImpl implements ChatService{
         LocalDateTime endTime = participant.getLastMessageTime() == null ? LocalDateTime.now():participant.getLastMessageTime();
         Optional<Message> latestMessage = getLastMessage(chatRoom);
 
-        return latestMessage.isEmpty() ? false :latestMessage.get().getCreatedAt().isAfter(endTime);
+        return latestMessage.isPresent() && latestMessage.get().getCreatedAt().isAfter(endTime);
     }
 
     private Optional<Message> getLastMessage(ChatRoomMySql chatRoom) {
