@@ -22,4 +22,8 @@ public class DayOfMessages {
     @DocumentReference
     private List<Message> messages;
     private int messagesCount;
+
+    public void setMessagesCount(int messagesCount){
+        this.messagesCount = messagesCount;
+    }
 }
