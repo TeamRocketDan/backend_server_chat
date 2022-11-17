@@ -266,7 +266,7 @@ public class ChatServiceImpl implements ChatService{
                 }
                 addPage = dayOfMessageCount%size == 0? dayOfMessageCount/size : dayOfMessageCount/size+1;
 
-                if(pastPage+addPage > page){
+                if(pastPage+addPage>page){
                     break;
                 }else {
                     pastPage += addPage;
@@ -276,16 +276,22 @@ public class ChatServiceImpl implements ChatService{
                 ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
                         () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-                Optional<DayOfMessages> dayOfMessages = chatRoom.getDayOfMessages()
+                Optional<DayOfMessages> optionalDayOfMessages = chatRoom.getDayOfMessages()
                         .stream().filter(x->x.getId().equals(dayOfMessageId)).findFirst();
 
-                if(dayOfMessages.isEmpty() && response.isLastDay()){
+                if(optionalDayOfMessages.isEmpty() && response.isLastDay()){
                     break;
-                }else if(dayOfMessages.isEmpty()){
+                }else if(optionalDayOfMessages.isEmpty()){
                     continue;
                 }
 
-                dayOfMessageCount = dayOfMessages.get().getMessagesCount();
+                DayOfMessages dayOfMessages= optionalDayOfMessages.get();
+                dayOfMessageCount = dayOfMessages.getMessagesCount();
+                if(dayOfMessageCount == 0){
+                    dayOfMessageCount = messageRepository.countByRoomIdAndCreatedAtBetween
+                            (roomId,targetDate,targetDate.plusDays(1)).intValue();
+                    dayOfMessages.setMessagesCount(dayOfMessageCount);
+                }
                 addPage = dayOfMessageCount%size == 0? dayOfMessageCount/size : dayOfMessageCount/size+1;
 
                 if(pastPage+addPage>page){
@@ -313,9 +319,11 @@ public class ChatServiceImpl implements ChatService{
             Page<Message> messagePage;
 
             if(response.isLastDay()){
-                messagePage = messageRepository.findAllByRoomIdAndCreatedAtAfter(roomId,participant.getCreatedAt(),pageRequest);
+                messagePage = messageRepository.findAllByRoomIdAndCreatedAtBetween(roomId,participant.getCreatedAt(),
+                        targetDate.plusDays(1).atTime(0,0),pageRequest);
             }else{
-                messagePage= messageRepository.findAllByRoomId(roomId, pageRequest);
+                messagePage= messageRepository.findAllByRoomIdAndCreatedAtBetween(roomId, targetDate.atTime(0,0),
+                        targetDate.plusDays(1).atTime(0,0),pageRequest);
             }
 
             Page<MessageDto> messageDtoPage = messagePage.map(MessageDto::of);
