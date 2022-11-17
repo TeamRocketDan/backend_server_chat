@@ -7,6 +7,7 @@ import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
+import com.example.teamrocket.chatRoom.repository.mongo.DayOfMessageRepository;
 import com.example.teamrocket.chatRoom.repository.mongo.MessageRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomParticipantRepository;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,7 @@ import static com.example.teamrocket.error.type.UserErrorCode.USER_NOT_FOUND;
 @Service
 public class ChatServiceImpl implements ChatService{
 
+    private final DayOfMessageRepository dayOfMessageRepository;
     private final UserRepository userRepository;
     private final ChatRoomMySqlRepository chatRoomMySqlRepository;
     private final ChatRoomMongoRepository chatRoomMongoRepository;
@@ -122,6 +125,12 @@ public class ChatServiceImpl implements ChatService{
             User owner = chatRoom.getOwner();
             chatRoomDto.setOwnerInfo(owner.getNickname(),owner.getProfileImage());
             contents.add(chatRoomDto);
+
+            ChatRoomParticipant participant = chatRoom.getParticipants().stream()
+                    .filter(x-> x.getUser().equals(user)).findFirst().orElseThrow(
+                           ()-> new ChatRoomException(NOT_PARTICIPATED_USER));
+
+            chatRoomDto.setNewMessage(checkNewMessage(chatRoom,participant));
         }
 
         PagingResponse<ChatRoomDto> result = PagingResponse.fromEntity(chatRoomPage);
@@ -241,7 +250,7 @@ public class ChatServiceImpl implements ChatService{
 
         MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
         LocalDate targetDate = LocalDate.now().plusDays(1);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
         int pastPage = 0;
         int addPage=0;
         int dayOfMessageCount=0;
@@ -254,7 +263,7 @@ public class ChatServiceImpl implements ChatService{
                 response.setLastDay(true);
             }
 
-            String dayOfMessageId = chatRoomMySql.getId()+"#"+targetDate.format(formatter);
+            String dayOfMessageId = getDayOfMessageId(chatRoomMySql,targetDate);
 
             if(targetDate.isAfter(LocalDate.now().minusDays(2))){
                 dayOfMessageCount = redisTemplateRepository.getMessageSize(dayOfMessageId).intValue();
@@ -291,6 +300,7 @@ public class ChatServiceImpl implements ChatService{
                     dayOfMessageCount = messageRepository.countByRoomIdAndCreatedAtBetween
                             (roomId,targetDate,targetDate.plusDays(1)).intValue();
                     dayOfMessages.setMessagesCount(dayOfMessageCount);
+                    dayOfMessageRepository.save(dayOfMessages);
                 }
                 addPage = dayOfMessageCount%size == 0? dayOfMessageCount/size : dayOfMessageCount/size+1;
 
@@ -303,7 +313,7 @@ public class ChatServiceImpl implements ChatService{
         }
 
         if(targetDate.isAfter(LocalDate.now().minusDays(2))){
-            String dayOfMessageId = chatRoomMySql.getId()+"#"+targetDate.format(formatter);
+            String dayOfMessageId = getDayOfMessageId(chatRoomMySql,targetDate);
             List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page,size);
             List<MessageDto>messageDtos;
             if(response.isLastDay()){
@@ -342,5 +352,55 @@ public class ChatServiceImpl implements ChatService{
 
         return new RoomInfoDto(chatRoom.getTitle(),chatRoom.getParticipants()
                 .stream().map(ChatRoomParticipantDto::of).collect(Collectors.toList()));
+    }
+
+    @Override
+    public ChatRoomServiceResult chatEnd(String roomId) {
+        User user = userRepository.findByUuid(commonRequestContext.getMemberUuId()).orElseThrow(
+                ()->new UserException(USER_NOT_FOUND));
+        Long userId = user.getId();
+
+        ChatRoomMySql chatRoom = chatRoomMySqlRepository
+                .findByIdAndDeletedAtIsNullAndEndDateAfter(roomId,LocalDate.now().minusDays(1))
+                .orElseThrow(() -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
+
+        ChatRoomParticipant participant =
+                chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,userId)
+                        .orElseThrow(()->new ChatRoomException(NOT_PARTICIPATED_USER));
+
+        Optional<Message> lastMessage = getLastMessage(chatRoom);
+        if(lastMessage.isEmpty()){
+            participant.setLastMessageTime(LocalDateTime.now());
+        }else{
+            participant.setLastMessageTime(lastMessage.get().getCreatedAt());
+        }
+
+        return new ChatRoomServiceResult(roomId,userId);
+    }
+
+    private String getDayOfMessageId(ChatRoomMySql room ,LocalDate date){
+        return room.getId()+"#"+date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    private boolean checkNewMessage(ChatRoomMySql chatRoom, ChatRoomParticipant participant) {
+        LocalDateTime endTime = participant.getLastMessageTime() == null ? LocalDateTime.now():participant.getLastMessageTime();
+        Optional<Message> latestMessage = getLastMessage(chatRoom);
+
+        return latestMessage.isEmpty() ? false :latestMessage.get().getCreatedAt().isAfter(endTime);
+    }
+
+    private Optional<Message> getLastMessage(ChatRoomMySql chatRoom) {
+
+        LocalDate targetDate = LocalDate.now().plusDays(1);
+        while (targetDate.isAfter(LocalDate.now().minusDays(1))) {
+            targetDate = targetDate.minusDays(1);
+            String dayOfMessageId = getDayOfMessageId(chatRoom, LocalDate.now());
+            Long messageCount = redisTemplateRepository.getMessageSize(dayOfMessageId);
+            if (messageCount != 0L) {
+                return Optional.of(redisTemplateRepository.getMessage(dayOfMessageId, 0, 1).get(0));
+            }
+        }
+
+        return messageRepository.findFirstByRoomIdOrderByCreatedAtDesc(chatRoom.getId());
     }
 }
