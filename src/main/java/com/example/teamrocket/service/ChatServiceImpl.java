@@ -266,7 +266,7 @@ public class ChatServiceImpl implements ChatService{
                 }
                 addPage = dayOfMessageCount%size == 0? dayOfMessageCount/size : dayOfMessageCount/size+1;
 
-                if(pastPage+addPage>=page){
+                if(pastPage+addPage > page){
                     break;
                 }else {
                     pastPage += addPage;
@@ -288,7 +288,7 @@ public class ChatServiceImpl implements ChatService{
                 dayOfMessageCount = dayOfMessages.get().getMessagesCount();
                 addPage = dayOfMessageCount%size == 0? dayOfMessageCount/size : dayOfMessageCount/size+1;
 
-                if(pastPage+addPage>=page){
+                if(pastPage+addPage>page){
                     break;
                 }else {
                     pastPage += addPage;
