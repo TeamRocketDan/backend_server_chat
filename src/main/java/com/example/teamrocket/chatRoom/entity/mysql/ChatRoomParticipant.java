@@ -1,6 +1,5 @@
 package com.example.teamrocket.chatRoom.entity.mysql;
 
-import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.config.jpa.BaseEntity;
 import com.example.teamrocket.user.entity.User;
 import lombok.AllArgsConstructor;
@@ -9,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -31,8 +31,9 @@ public class ChatRoomParticipant extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToOne
-    @JoinColumn(name = "last_message")
-    private Message lastMessage;
+    private LocalDateTime lastMessageTime;
 
+    public void setLastMessageTime(LocalDateTime lastMessageTime) {
+        this.lastMessageTime = lastMessageTime;
+    }
 }
