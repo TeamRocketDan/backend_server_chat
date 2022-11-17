@@ -87,4 +87,11 @@ public class ChatController {
         log.info("Messages get total "+ messages.getContent().size());
         return ResponseEntity.ok(success(messages));
     }
+
+    @PatchMapping("/chat-end/{roomId}")
+        public ResponseEntity<ApiResult<ChatRoomServiceResult>> chatEnd(@PathVariable String roomId){
+        ChatRoomServiceResult result = chatService.chatEnd(roomId);
+        return ResponseEntity.ok(success(result));
+    }
 }
+

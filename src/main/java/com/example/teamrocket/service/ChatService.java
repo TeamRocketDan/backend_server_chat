@@ -25,4 +25,6 @@ public interface ChatService {
     MessagePagingResponse<MessageDto> getMessages(String roomId,Integer page, Integer size);
 
     PagingResponse<ChatRoomDto> myListRoom(Pageable pageRequest);
+
+    ChatRoomServiceResult chatEnd(String roomId);
 }
