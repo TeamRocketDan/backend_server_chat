@@ -255,6 +255,9 @@ public class ChatServiceImpl implements ChatService{
         int addPage=0;
         int dayOfMessageCount=0;
 
+        ChatRoom chatRoom = null;
+        List<DayOfMessages> dayOfMessagesList = new ArrayList<>();
+
         while(true){
 
             targetDate = targetDate.minusDays(1);
@@ -282,10 +285,14 @@ public class ChatServiceImpl implements ChatService{
                 }
 
             } else{
-                ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
-                        () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
+                if(chatRoom == null){
+                    chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
+                            () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-                Optional<DayOfMessages> optionalDayOfMessages = chatRoom.getDayOfMessages()
+                    dayOfMessagesList = chatRoom.getDayOfMessages();
+                }
+
+                Optional<DayOfMessages> optionalDayOfMessages = dayOfMessagesList
                         .stream().filter(x->x.getId().equals(dayOfMessageId)).findFirst();
 
                 if(optionalDayOfMessages.isEmpty() && response.isLastDay()){
