@@ -3,9 +3,11 @@ package com.example.teamrocket.service;
 import com.example.teamrocket.chatRoom.domain.ChatRoomCreateInput;
 import com.example.teamrocket.chatRoom.domain.ChatRoomEditInput;
 import com.example.teamrocket.chatRoom.entity.ChatRoom;
+import com.example.teamrocket.chatRoom.entity.Message;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomMySql;
 import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomParticipant;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
+import com.example.teamrocket.chatRoom.repository.mongo.MessageRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomParticipantRepository;
 import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
@@ -24,10 +26,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static com.example.teamrocket.error.type.ChatRoomErrorCode.*;
 import static com.example.teamrocket.error.type.UserErrorCode.USER_NOT_FOUND;
@@ -59,6 +59,9 @@ class ChatServiceTest {
 
     @Mock
     private RedisTemplateRepository redisTemplateRepository;
+
+    @Mock
+    private MessageRepository messageRepository;
 
     @InjectMocks
     private ChatServiceImpl chatService;
@@ -260,13 +263,18 @@ class ChatServiceTest {
     void myListRoomSuccess() {
         //given
         User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder().user(user1)
+                .lastMessageTime(LocalDateTime.now().minusHours(2)).build();
 
         ChatRoomMySql room1 = ChatRoomMySql.builder()
-                .title("채팅방1").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
+                .title("채팅방1").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3))
+                .participants(Arrays.asList(participant1)).build();
         ChatRoomMySql room2 = ChatRoomMySql.builder()
-                .title("채팅방2").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
+                .title("채팅방2").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3))
+                .participants(Arrays.asList(participant1)).build();
         ChatRoomMySql room3 = ChatRoomMySql.builder()
-                .title("채팅방3").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3)).participants(new ArrayList<>()).build();
+                .title("채팅방3").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3))
+                .participants(Arrays.asList(participant1)).build();
 
         List<ChatRoomMySql> rooms = new ArrayList<>();
 
@@ -275,13 +283,19 @@ class ChatServiceTest {
         rooms.add(room3);
 
         PageRequest pageRequest = PageRequest.of(0,10);
-        Page<ChatRoomMySql> chatRoomParticipantPage = new PageImpl<>(rooms);
+        Page<ChatRoomMySql> chatRoomPage = new PageImpl<>(rooms);
 
         given(commonRequestContext.getMemberUuId()).willReturn("uuid");
         given(userRepository.findByUuid("uuid")).willReturn(Optional.of(user1));
         given(chatRoomMySqlRepository
                 .findAllByUserIdAndAndDeletedAtIsNullAndEndDateAfterOrderByStartDate(user1, LocalDate.now().minusDays(1),pageRequest))
-                .willReturn(chatRoomParticipantPage);
+                .willReturn(chatRoomPage);
+
+        given(redisTemplateRepository.getMessageSize(any()))
+                .willReturn(1L);
+        given(redisTemplateRepository.getMessage(any(), eq(0), eq(1)))
+                .willReturn(Arrays.asList(Message.builder().createdAt(LocalDateTime.now().minusHours(1)).build()));
+
 
         //when
         var results = chatService.myListRoom(pageRequest);
@@ -289,14 +303,16 @@ class ChatServiceTest {
         assertEquals(3,results.getSize());
 
         assertEquals("채팅방1",results.getContent().get(0).getTitle());
-        assertEquals(0,results.getContent().get(0).getCurParticipant());
+        assertEquals(1,results.getContent().get(0).getCurParticipant());
         assertEquals("프로필 이미지 경로1",results.getContent().get(0).getOwnerProfileImage());
         assertEquals("닉네임1",results.getContent().get(0).getOwnerNickName());
+        assertTrue(results.getContent().get(0).isNewMessage());
 
         assertEquals("채팅방2",results.getContent().get(1).getTitle());
-        assertEquals(0,results.getContent().get(1).getCurParticipant());
+        assertEquals(1,results.getContent().get(1).getCurParticipant());
         assertEquals("프로필 이미지 경로1",results.getContent().get(1).getOwnerProfileImage());
         assertEquals("닉네임1",results.getContent().get(1).getOwnerNickName());
+        assertTrue(results.getContent().get(1).isNewMessage());
     }
 
     @Test
@@ -801,6 +817,102 @@ class ChatServiceTest {
             chatService.getRoomInfo("1번방");
         } catch (Exception e){
             assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
+        }
+    }
+
+    @Test
+    void chatEndSuccess() {
+        //given
+        User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+
+        ChatRoomMySql chatRoom = ChatRoomMySql.builder().id("1번방").participants(Collections.emptyList())
+                .maxParticipant(3)
+                .build();
+
+        ChatRoomParticipant participant = ChatRoomParticipant.builder()
+                .user(user1).chatRoomMySql(chatRoom).build();
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(user1));
+
+        given(chatRoomMySqlRepository.findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1))).willReturn(
+                Optional.of(chatRoom));
+
+        given(chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoom,1L))
+                .willReturn(Optional.of(participant));
+
+        given(messageRepository.findFirstByRoomIdOrderByCreatedAtDesc(chatRoom.getId())).willReturn(
+                Optional.empty());
+
+        //when
+        var result = chatService.chatEnd("1번방");
+
+        //then
+        assertEquals("1번방",result.getChatRoomId());
+        assertEquals(1L,result.getUserId());
+    }
+
+    @Test
+    void chatEndFail_NoUser() {
+        //given
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(
+                Optional.empty());
+
+        //when
+        //then
+        try{
+            chatService.chatEnd("1번방");
+        } catch (Exception e){
+            assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
+        }
+    }
+
+    @Test
+    void chatEndFail_NoChatRoom() {
+        //given
+        User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(
+                Optional.of(user1));
+
+        given(chatRoomMySqlRepository
+                .findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1)))
+                .willReturn(Optional.empty());
+
+        //when
+        //then
+        try{
+            chatService.chatEnd("1번방");
+        } catch (Exception e){
+            assertEquals(CHAT_ROOM_NOT_FOUND.getMessage(),e.getMessage());
+        }
+    }
+
+    @Test
+    void chatEndFail_NotParticipated() {
+        //given
+        User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(
+                Optional.of(user1));
+
+        ChatRoomMySql chatRoomMySql = ChatRoomMySql.builder().id("1번방").build();
+
+        given(chatRoomMySqlRepository
+                .findByIdAndDeletedAtIsNullAndEndDateAfter("1번방",LocalDate.now().minusDays(1)))
+                .willReturn(Optional.of(chatRoomMySql));
+
+        given( chatRoomParticipantRepository.findByChatRoomMySqlAndUserId(chatRoomMySql,user1.getId()))
+                .willReturn(Optional.empty());
+        //when
+        //then
+        try{
+            chatService.chatEnd("1번방");
+        } catch (Exception e){
+            assertEquals(NOT_PARTICIPATED_USER.getMessage(),e.getMessage());
         }
     }
 }
