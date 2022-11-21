@@ -1,14 +1,17 @@
 spring:
   profiles:
     active: dev
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_HOST}
     username: ${DB_NAME}
     password: ${DB_PASSWORD}
+
   redis:
     port: ${REDIS_PORT}
     host: ${REDIS_HOST}
+    password: ${REDIS_PASSWORD}
     database: 0
 
   data:
@@ -17,13 +20,11 @@ spring:
         enabled: false
     mongodb:
       uri: ${MONGO_HOST}
-      username: ${MONGO_USER}
-      password: ${MONGO_PASSWORD}
+      database: ${MONGO_NAME}
 
   jpa:
-    hibernate:
-      ddl-auto: update
-
+#    hibernate:
+#      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -34,6 +35,27 @@ spring:
 
     database: mysql
 
+  rabbitmq:
+    username: ${RABBIT_ADMIN}
+    password: ${RABBIT_PASSWORD}
+    host: ${RABBIT_HOST}
+    port: ${RABBIT_PORT}
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
+cors:
+  allowed-origins: http://localhost:3000,http://3.35.26.86
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  allowed-headers: '*'
+  max-age: 3600
+
 logging:
   level:
     org.springframework.data.mongodb.core.MongoTemplate: debug
+
+jwt:
+  secret: ${JWT_SECRET}

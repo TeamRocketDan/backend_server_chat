@@ -7,6 +7,8 @@ import com.example.teamrocket.chatRoom.entity.mysql.ChatRoomStatus;
 import com.example.teamrocket.chatRoom.repository.mongo.ChatRoomMongoRepository;
 import com.example.teamrocket.chatRoom.repository.mysql.ChatRoomMySqlRepository;
 import com.example.teamrocket.chatRoom.repository.redis.RedisTemplateRepository;
+import com.example.teamrocket.user.entity.User;
+import com.example.teamrocket.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +33,8 @@ public class DbConnectionSaveTest {
     private ChatRoomMongoRepository chatRoomMongoRepository;
     @Autowired
     private ChatRoomMySqlRepository chatRoomMySqlRepository;
+    @Autowired
+    private UserRepository userRepository;
 
 
     @BeforeEach // *주의 테스트를 위해 레디스 의 모든 데이터를 플러쉬 함
@@ -42,14 +47,14 @@ public class DbConnectionSaveTest {
     void saveRedisTest() throws Exception{
         String roomId = "roomIdTest";
         Message m1 = Message.builder()
-                .senderName("로사")
+                .userId(1L)
                 .message("우리가 누군지 물으신다면 나 로사")
                 .createdAt(LocalDateTime.now())
                 .build();
         redisTemplateRepository.saveToLeft(roomId,m1);
 
         Message m2 = Message.builder()
-                .senderName("로이")
+                .userId(1L)
                 .message("나 로이")
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -82,11 +87,26 @@ public class DbConnectionSaveTest {
     @Test
     @DisplayName("MySql 저장,가져오기 테스트")
     void saveMysqlDbTest() throws Exception{
+        User user = userRepository.findById(1L).get();
+
+        String s = UUID.randomUUID().toString();
         ChatRoomMySql chatRoom = ChatRoomMySql.builder()
+                .id(s)
+                .title("test")
+                .maxParticipant(10)
+                .owner(user)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now())
+                .latitude("a")
+                .longitude("b")
                 .chatRoomStatus(ChatRoomStatus.TRAVEL)
+                .rcate1("abc")
+                .rcate2("cde")
                 .build();
 
         ChatRoomMySql save = chatRoomMySqlRepository.save(chatRoom);
+
+
         ChatRoomMySql findChatRoom = chatRoomMySqlRepository.findById(save.getId()).get();
 
         assertThat(save.getChatRoomStatus())
