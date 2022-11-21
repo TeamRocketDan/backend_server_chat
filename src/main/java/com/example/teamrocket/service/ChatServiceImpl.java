@@ -400,7 +400,7 @@ public class ChatServiceImpl implements ChatService{
     private Optional<Message> getLastMessage(ChatRoomMySql chatRoom) {
 
         LocalDate targetDate = LocalDate.now().plusDays(1);
-        while (targetDate.isAfter(LocalDate.now().minusDays(1))) {
+        while (targetDate.isAfter(LocalDate.now().minusDays(2))) {
             targetDate = targetDate.minusDays(1);
             String dayOfMessageId = getDayOfMessageId(chatRoom, LocalDate.now());
             Long messageCount = redisTemplateRepository.getMessageSize(dayOfMessageId);
