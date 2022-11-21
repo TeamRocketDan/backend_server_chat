@@ -32,8 +32,7 @@ import java.util.*;
 import static com.example.teamrocket.error.type.ChatRoomErrorCode.*;
 import static com.example.teamrocket.error.type.UserErrorCode.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -260,7 +259,7 @@ class ChatServiceTest {
     }
 
     @Test
-    void myListRoomSuccess() {
+    void myListRoomSuccess_FromRedis() {
         //given
         User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
         ChatRoomParticipant participant1 = ChatRoomParticipant.builder().user(user1)
@@ -316,6 +315,63 @@ class ChatServiceTest {
     }
 
     @Test
+    void myListRoomSuccess_FromMongo() {
+        //given
+        User user1 = User.builder().id(1L).profileImage("프로필 이미지 경로1").nickname("닉네임1").build();
+        ChatRoomParticipant participant1 = ChatRoomParticipant.builder().user(user1)
+                .lastMessageTime(LocalDateTime.now().minusDays(2).minusHours(2)).build();
+
+        ChatRoomMySql room1 = ChatRoomMySql.builder().id("")
+                .title("채팅방1").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3))
+                .participants(Arrays.asList(participant1)).build();
+        ChatRoomMySql room2 = ChatRoomMySql.builder().id("")
+                .title("채팅방2").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3))
+                .participants(Arrays.asList(participant1)).build();
+        ChatRoomMySql room3 = ChatRoomMySql.builder().id("")
+                .title("채팅방3").rcate1("서울시").owner(user1).endDate(LocalDate.now().plusDays(3))
+                .participants(Arrays.asList(participant1)).build();
+
+        List<ChatRoomMySql> rooms = new ArrayList<>();
+
+        rooms.add(room1);
+        rooms.add(room2);
+        rooms.add(room3);
+
+        PageRequest pageRequest = PageRequest.of(0,10);
+        Page<ChatRoomMySql> chatRoomPage = new PageImpl<>(rooms);
+
+        given(commonRequestContext.getMemberUuId()).willReturn("uuid");
+        given(userRepository.findByUuid("uuid")).willReturn(Optional.of(user1));
+        given(chatRoomMySqlRepository
+                .findAllByUserIdAndAndDeletedAtIsNullAndEndDateAfterOrderByStartDate(user1, LocalDate.now().minusDays(1),pageRequest))
+                .willReturn(chatRoomPage);
+
+        given(redisTemplateRepository.getMessageSize(any()))
+                .willReturn(0L);
+
+        given(messageRepository.findFirstByRoomIdOrderByCreatedAtDesc(anyString()))
+                .willReturn(Optional.of(Message.builder().createdAt(LocalDateTime.now().minusDays(2).minusHours(1)).build()));
+
+
+        //when
+        var results = chatService.myListRoom(pageRequest);
+        //then
+        assertEquals(3,results.getSize());
+
+        assertEquals("채팅방1",results.getContent().get(0).getTitle());
+        assertEquals(1,results.getContent().get(0).getCurParticipant());
+        assertEquals("프로필 이미지 경로1",results.getContent().get(0).getOwnerProfileImage());
+        assertEquals("닉네임1",results.getContent().get(0).getOwnerNickName());
+        assertTrue(results.getContent().get(0).isNewMessage());
+
+        assertEquals("채팅방2",results.getContent().get(1).getTitle());
+        assertEquals(1,results.getContent().get(1).getCurParticipant());
+        assertEquals("프로필 이미지 경로1",results.getContent().get(1).getOwnerProfileImage());
+        assertEquals("닉네임1",results.getContent().get(1).getOwnerNickName());
+        assertTrue(results.getContent().get(1).isNewMessage());
+    }
+
+    @Test
     void myListRoomFail_NoUser() {
         //given
 
@@ -331,7 +387,6 @@ class ChatServiceTest {
             assertEquals(USER_NOT_FOUND.getMessage(),e.getMessage());
         }
     }
-
 
     @Test
     void editRoomSuccess() {
