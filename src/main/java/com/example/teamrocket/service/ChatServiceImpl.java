@@ -51,6 +51,8 @@ public class ChatServiceImpl implements ChatService{
     private final MessageRepository messageRepository;
     private final CommonRequestContext commonRequestContext;
 
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     @Transactional
     @Override
     public ChatRoomDto createRoom(ChatRoomCreateInput param) {
@@ -257,80 +259,46 @@ public class ChatServiceImpl implements ChatService{
                         () -> new ChatRoomException(NOT_PARTICIPATED_USER));
 
         MessagePagingResponse<MessageDto> response = new MessagePagingResponse<>();
-        LocalDate targetDate = LocalDate.now().plusDays(1);
 
-        int pastPage = 0;
-        int addPage;
-        int dayOfMessageCount;
 
-        while(targetDate.isAfter(LocalDate.now().minusDays(2))){
+        int pastPage;
+        LocalDate targetDate = LocalDate.now();
 
+        int todayPage = getPagesOfTargetDateFromRedis(size,chatRoomMySql,targetDate);
+        if(todayPage < page){
             targetDate = targetDate.minusDays(1);
+            int yesterdayPage = getPagesOfTargetDateFromRedis(size,chatRoomMySql,targetDate);
+            pastPage = todayPage;
+            if(todayPage + yesterdayPage < page){
+                ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
+                        () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
 
-            if(targetDate.equals(participant.getCreatedAt().toLocalDate())){
-                response.setLastDay(true);
-            }
-
-            String dayOfMessageId = getDayOfMessageId(chatRoomMySql,targetDate);
-            dayOfMessageCount = redisTemplateRepository.getMessageSize(dayOfMessageId).intValue();
-
-            if (dayOfMessageCount == 0 && response.isLastDay()) {
-                break;
-            } else if (dayOfMessageCount == 0) {
-                continue;
-            }
-            addPage = dayOfMessageCount % size == 0 ? dayOfMessageCount / size : dayOfMessageCount / size + 1;
-
-            if (pastPage + addPage > page) {
-
-                List<Message> messages = redisTemplateRepository.getMessage(dayOfMessageId,page - pastPage,size);
-                List<MessageDto>messageDtos;
-                if(response.isLastDay()){
-                    messageDtos = messages.stream().filter(message -> message.getCreatedAt().isAfter(participant.getCreatedAt()))
-                            .map(MessageDto::of).collect(Collectors.toList());
-                }else{
-                    messageDtos = messages.stream().map(MessageDto::of).collect(Collectors.toList());
+                setPastPageFromMongo(chatRoom,targetDate,response,pastPage,page);
+            } else{
+                if(participant.getCreatedAt().toLocalDate().equals(LocalDate.now().minusDays(1))){
+                    response.setLastDay(true);
                 }
-                response.setFromList(messageDtos,targetDate,pastPage == page,size,addPage,
-                        dayOfMessageCount,page-pastPage);
+                List<MessageDto> messages = redisTemplateRepository.getMessage(
+                        chatRoomMySql.getId()+"#"+targetDate.format(DATE_TIME_FORMATTER),page - pastPage,size)
+                        .stream().map(MessageDto::of).collect(Collectors.toList());
+
+                response.setFromList(messages,targetDate,pastPage == page,size,todayPage + yesterdayPage,
+                        page*(size-1)+messages.size(),page-pastPage);
 
                 return response;
-            } else {
-                pastPage += addPage;
             }
-        }
-
-        ChatRoom chatRoom = chatRoomMongoRepository.findById(chatRoomMySql.getId()).orElseThrow(
-                () -> new ChatRoomException(CHAT_ROOM_NOT_FOUND));
-
-        List<DayOfMessages> dayOfMessagesList = chatRoom.getDayOfMessages().stream().sorted(
-                (x,y)-> Integer.parseInt(y.getId().split("#")[1]) - Integer.parseInt(x.getId().split("#")[1])
-        ).collect(Collectors.toList());
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        int dayOfMessagesIdx = 0;
-        while(dayOfMessagesIdx<dayOfMessagesList.size()){
-            DayOfMessages dayOfMessages= dayOfMessagesList.get(dayOfMessagesIdx);
-            if(dayOfMessagesIdx+1 == dayOfMessagesList.size()){
+        }else{
+            if(participant.getCreatedAt().toLocalDate().equals(LocalDate.now())){
                 response.setLastDay(true);
             }
+            List<MessageDto> messages = redisTemplateRepository.getMessage(
+                            chatRoomMySql.getId()+"#"+targetDate.format(DATE_TIME_FORMATTER),page,size)
+                    .stream().map(MessageDto::of).collect(Collectors.toList());
 
-            targetDate = LocalDate.parse(dayOfMessages.getId(),formatter);
-            dayOfMessageCount = dayOfMessages.getMessagesCount();
-            if(dayOfMessageCount == 0){
-                dayOfMessageCount = messageRepository.countByRoomIdAndCreatedAtBetween
-                        (roomId,targetDate,targetDate.plusDays(1)).intValue();
-                dayOfMessages.setMessagesCount(dayOfMessageCount);
-                dayOfMessageRepository.save(dayOfMessages);
-            }
-            addPage = dayOfMessageCount%size == 0? dayOfMessageCount/size : dayOfMessageCount/size+1;
+            response.setFromList(messages,targetDate,page == 0,size,todayPage,
+                    page*(size-1)+messages.size(),page);
 
-            if(pastPage+addPage>page){
-                break;
-            }else {
-                pastPage += addPage;
-                dayOfMessagesIdx++;
-            }
+            return response;
         }
 
         PageRequest pageRequest = PageRequest.of(page-pastPage,size);
@@ -386,10 +354,6 @@ public class ChatServiceImpl implements ChatService{
         return new ChatRoomServiceResult(roomId,userId);
     }
 
-    private String getDayOfMessageId(ChatRoomMySql room ,LocalDate date){
-        return room.getId()+"#"+date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-    }
-
     private boolean checkNewMessage(ChatRoomMySql chatRoom, ChatRoomParticipant participant) {
         LocalDateTime endTime = participant.getLastMessageTime() == null ? LocalDateTime.now():participant.getLastMessageTime();
         Optional<Message> latestMessage = getLastMessage(chatRoom);
@@ -402,7 +366,7 @@ public class ChatServiceImpl implements ChatService{
         LocalDate targetDate = LocalDate.now().plusDays(1);
         while (targetDate.isAfter(LocalDate.now().minusDays(2))) {
             targetDate = targetDate.minusDays(1);
-            String dayOfMessageId = getDayOfMessageId(chatRoom, LocalDate.now());
+            String dayOfMessageId = chatRoom.getId()+"#"+targetDate.format(DATE_TIME_FORMATTER);
             Long messageCount = redisTemplateRepository.getMessageSize(dayOfMessageId);
             if (messageCount != 0L) {
                 return Optional.of(redisTemplateRepository.getMessage(dayOfMessageId, 0, 1).get(0));
@@ -410,5 +374,43 @@ public class ChatServiceImpl implements ChatService{
         }
 
         return messageRepository.findFirstByRoomIdOrderByCreatedAtDesc(chatRoom.getId());
+    }
+
+    private Integer getPagesOfTargetDateFromRedis(Integer size, ChatRoomMySql chatRoom, LocalDate targetDate){
+            String dayOfMessageId = chatRoom.getId()+"#"+targetDate.format(DATE_TIME_FORMATTER);
+            var targetDateMessageSize = redisTemplateRepository.getMessageSize(dayOfMessageId).intValue();
+
+        return targetDateMessageSize % size == 0 ? targetDateMessageSize / size : targetDateMessageSize / size + 1;
+    }
+
+    private void setPastPageFromMongo(ChatRoom chatRoom, LocalDate targetDate,
+                                         MessagePagingResponse<MessageDto> response,int pastPage,int page){
+        List<DayOfMessages> dayOfMessagesList = chatRoom.getDayOfMessages().stream()
+                .dropWhile(x->LocalDate.parse(x.getId().split("#")[1]).isAfter(LocalDate.now().minusDays(2)))
+                .collect(Collectors.toList());
+
+        List<LocalDate> dayOfMessagesDateList = dayOfMessagesList.stream()
+                .map(x->LocalDate.parse(x.getId().split("#")[1]))
+                .collect(Collectors.toList());
+
+        int dayOfMessagesIdx = 0;
+        while(dayOfMessagesIdx<dayOfMessagesDateList.size()){
+            targetDate = dayOfMessagesDateList.get(dayOfMessagesIdx);
+            if(dayOfMessagesIdx+1 == dayOfMessagesDateList.size()){
+                response.setLastDay(true);
+            }
+
+            int targetDateDayOfMessages = dayOfMessagesList.get(dayOfMessagesIdx).getMessagesCount();
+
+            var targetDatePage = targetDateDayOfMessages%page == 0 ?
+                    targetDateDayOfMessages : targetDateDayOfMessages+1 ;
+
+            if(pastPage+targetDatePage>page){
+                break;
+            }else {
+                pastPage += targetDatePage;
+                dayOfMessagesIdx++;
+            }
+        }
     }
 }
